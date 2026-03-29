@@ -1,0 +1,70 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}IVER Financeiro{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+</head>
+<body>
+    <div class="d-flex min-vh-100">
+        {% if request.user.is_authenticated %}
+            <aside class="sidebar p-4 text-white">
+                <h1 class="h4 mb-4">IVER</h1>
+                <nav class="nav flex-column gap-2">
+                    <a class="nav-link text-white" href="{% url 'dashboard' %}">Dashboard</a>
+                    <a class="nav-link text-white" href="{% url 'faturamento:list' %}">Faturamento</a>
+                    <a class="nav-link text-white" href="{% url 'despesas:list' %}">Despesas</a>
+                    <a class="nav-link text-white" href="{% url 'folha:index' %}">Folha</a>
+                    <a class="nav-link text-white" href="{% url 'dre:index' %}">DRE</a>
+                    <div class="sidebar-group">
+                        <button
+                            class="nav-link text-white w-100 text-start d-flex justify-content-between align-items-center sidebar-toggle {% if '/cadastros/' in request.path %}active{% endif %}"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#cadastrosMenu"
+                            aria-expanded="{% if '/cadastros/' in request.path %}true{% else %}false{% endif %}"
+                            aria-controls="cadastrosMenu"
+                        >
+                            <span>Cadastros</span>
+                            <span class="small">+</span>
+                        </button>
+                        <div class="collapse sidebar-submenu {% if '/cadastros/' in request.path %}show{% endif %}" id="cadastrosMenu">
+                            <a class="nav-link text-white submenu-link" href="{% url 'cadastros:index' %}">Visão geral</a>
+                            {% for slug, item in sidebar_cadastros.items %}
+                                <a class="nav-link text-white submenu-link" href="{% url 'cadastros:list' slug %}">{{ item.title }}</a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <a class="nav-link text-white" href="{% url 'admin:index' %}">Admin</a>
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-light btn-sm mt-3" type="submit">Sair</button>
+                    </form>
+                </nav>
+            </aside>
+        {% endif %}
+        <main class="flex-grow-1">
+            <header class="border-bottom bg-white px-4 py-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="h5 mb-0">{% block page_title %}Painel{% endblock %}</h2>
+                </div>
+                {% if request.user.is_authenticated %}
+                    <span class="text-muted small">{{ request.user.username }}</span>
+                {% endif %}
+            </header>
+            <div class="container-fluid p-4">
+                {% for message in messages %}
+                    <div class="alert alert-info">{{ message }}</div>
+                {% endfor %}
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

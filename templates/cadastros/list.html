@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load finance_extras %}
+
+{% block page_title %}{{ cadastro_title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'cadastros:index' %}">Voltar</a>
+    <a class="btn btn-primary btn-sm" href="{% url 'cadastros:create' cadastro_slug %}">Novo cadastro</a>
+</div>
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    {% for field in list_fields %}
+                        <th>{{ field.verbose_name|capfirst }}</th>
+                    {% endfor %}
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for object in object_list %}
+                    <tr>
+                        {% for field in list_fields %}
+                            <td>{{ object|attr:field.name|default_if_none:"" }}</td>
+                        {% endfor %}
+                        <td class="text-end">
+                            <a class="btn btn-outline-primary btn-sm" href="{% url 'cadastros:update' cadastro_slug object.pk %}">Editar</a>
+                            <a class="btn btn-outline-danger btn-sm" href="{% url 'cadastros:delete' cadastro_slug object.pk %}">Excluir</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="{{ list_fields|length|add:1 }}" class="text-center py-4">Nenhum registro encontrado.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

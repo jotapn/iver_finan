@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags finance_extras %}
+
+{% block page_title %}Faturamento{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <form method="get" class="row g-2">
+        <div class="col-auto">{{ filter.form.ano|as_crispy_field }}</div>
+        <div class="col-auto">{{ filter.form.mes|as_crispy_field }}</div>
+        <div class="col-auto align-self-end"><button class="btn btn-outline-secondary">Filtrar</button></div>
+    </form>
+    <a class="btn btn-primary" href="{% url 'faturamento:create' %}">Novo lançamento</a>
+</div>
+
+{% if resumo %}
+<div class="row g-3 mb-4">
+    <div class="col-md-4 col-xl-2"><div class="card shadow-sm border-0"><div class="card-body"><small>Total bruto</small><div class="fw-semibold">{{ resumo.total_bruto|brl }}</div></div></div></div>
+    <div class="col-md-4 col-xl-2"><div class="card shadow-sm border-0"><div class="card-body"><small>Taxa serviço</small><div class="fw-semibold">{{ resumo.taxa_servico|brl }}</div></div></div></div>
+    <div class="col-md-4 col-xl-2"><div class="card shadow-sm border-0"><div class="card-body"><small>Total líquido</small><div class="fw-semibold">{{ resumo.total_liquido|brl }}</div></div></div></div>
+    <div class="col-md-4 col-xl-2"><div class="card shadow-sm border-0"><div class="card-body"><small>Dias</small><div class="fw-semibold">{{ resumo.dias_trabalhados }}</div></div></div></div>
+    <div class="col-md-4 col-xl-2"><div class="card shadow-sm border-0"><div class="card-body"><small>Média/dia</small><div class="fw-semibold">{{ resumo.media_dia|brl }}</div></div></div></div>
+</div>
+{% endif %}
+
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Total</th>
+                    <th>Bar</th>
+                    <th>Cozinha</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for object in object_list %}
+                    <tr>
+                        <td>{{ object.data|date:"d/m/Y" }}</td>
+                        <td>{{ object.total|brl }}</td>
+                        <td>{{ object.faturamento_bar|brl }}</td>
+                        <td>{{ object.faturamento_cozinha|brl }}</td>
+                        <td class="text-end"><a class="btn btn-outline-primary btn-sm" href="{% url 'faturamento:update' object.pk %}">Editar</a></td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5" class="text-center py-4">Nenhum lançamento encontrado.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Login | IVER{% endblock %}
+{% block page_title %}Acesso ao Sistema{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5 col-xl-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h3 class="h5 mb-3">Entrar</h3>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <button type="submit" class="btn btn-primary w-100">Entrar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

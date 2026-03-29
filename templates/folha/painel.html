@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% load finance_extras %}
+
+{% block page_title %}Folha {{ periodo }}{% endblock %}
+
+{% block content %}
+<div class="d-flex gap-2 mb-3">
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'folha:index' %}">Voltar</a>
+    <a class="btn btn-outline-primary btn-sm" href="{% url 'folha:create-benefit' periodo.ano periodo.mes %}">Novo benefício</a>
+    <a class="btn btn-primary btn-sm" href="{% url 'folha:create-expense' periodo.ano periodo.mes %}">Nova despesa trabalhista</a>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <h3 class="h6">Lançamentos dos colaboradores</h3>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Colaborador</th>
+                        <th>Salário Bruto</th>
+                        <th>Adiantamento</th>
+                        <th>Saldo Final</th>
+                        <th>Prod. 1</th>
+                        <th>Prod. 2</th>
+                        <th>VT / Ajuda</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lancamento in lancamentos %}
+                        <tr>
+                            <td>{{ lancamento.colaborador.nome }}</td>
+                            <td>{{ lancamento.salario_bruto|brl }}</td>
+                            <td>
+                                {{ lancamento.adiantamento_valor|brl }}
+                                {% if not lancamento.adiantamento_pago and lancamento.adiantamento_valor > 0 %}
+                                    <form method="post" action="{% url 'folha:mark-launch-paid' lancamento.pk 'adiantamento' %}">{% csrf_token %}<button class="btn btn-sm btn-outline-success mt-1">Marcar</button></form>
+                                {% else %}<span class="badge text-bg-success">Pago</span>{% endif %}
+                            </td>
+                            <td>
+                                {{ lancamento.saldo_final_valor|brl }}
+                                {% if not lancamento.saldo_final_pago and lancamento.saldo_final_valor > 0 %}
+                                    <form method="post" action="{% url 'folha:mark-launch-paid' lancamento.pk 'saldo-final' %}">{% csrf_token %}<button class="btn btn-sm btn-outline-success mt-1">Marcar</button></form>
+                                {% else %}<span class="badge text-bg-success">Pago</span>{% endif %}
+                            </td>
+                            <td>
+                                {{ lancamento.produtividade_1_valor|brl }}
+                                {% if not lancamento.produtividade_1_pago and lancamento.produtividade_1_valor > 0 %}
+                                    <form method="post" action="{% url 'folha:mark-launch-paid' lancamento.pk 'produtividade-1' %}">{% csrf_token %}<button class="btn btn-sm btn-outline-success mt-1">Marcar</button></form>
+                                {% else %}<span class="badge text-bg-success">Pago</span>{% endif %}
+                            </td>
+                            <td>
+                                {{ lancamento.produtividade_2_valor|brl }}
+                                {% if not lancamento.produtividade_2_pago and lancamento.produtividade_2_valor > 0 %}
+                                    <form method="post" action="{% url 'folha:mark-launch-paid' lancamento.pk 'produtividade-2' %}">{% csrf_token %}<button class="btn btn-sm btn-outline-success mt-1">Marcar</button></form>
+                                {% else %}<span class="badge text-bg-success">Pago</span>{% endif %}
+                            </td>
+                            <td>
+                                {% for beneficio in beneficios %}
+                                    {% if beneficio.colaborador_id == lancamento.colaborador_id %}
+                                        VT {{ beneficio.vale_transporte|brl }}<br>
+                                        Ajuda {{ beneficio.ajuda_custo|brl }}<br>
+                                        {% if not beneficio.pago %}
+                                            <form method="post" action="{% url 'folha:mark-benefit-paid' beneficio.pk %}">{% csrf_token %}<button class="btn btn-sm btn-outline-success mt-1">Marcar</button></form>
+                                        {% elif beneficio.pago %}
+                                            <span class="badge text-bg-success">Pago</span>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
+                            <td class="text-end">
+                                <a class="btn btn-outline-primary btn-sm" href="{% url 'folha:update-lancamento' periodo.ano periodo.mes lancamento.pk %}">Editar</a>
+                                <a class="btn btn-outline-secondary btn-sm" href="{% url 'folha:history' periodo.ano periodo.mes lancamento.colaborador.pk %}">Histórico</a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="8" class="text-center py-4">Nenhum lançamento gerado.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h3 class="h6">Despesas trabalhistas</h3>
+                <ul class="list-group list-group-flush">
+                    {% for item in despesas_trabalhistas %}
+                        <li class="list-group-item px-0 d-flex justify-content-between">
+                            <span>{{ item.get_tipo_display }}</span>
+                            <strong>{{ item.valor|brl }}</strong>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item px-0">Nenhuma despesa trabalhista lançada.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h3 class="h6">Resumo do mês</h3>
+                <ul class="list-group list-group-flush">
+                    {% for item in resumo_trabalhista %}
+                        <li class="list-group-item px-0 d-flex justify-content-between">
+                            <span>{{ item.tipo }}</span>
+                            <strong>{{ item.total|brl }}</strong>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item px-0">Sem totais calculados.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
