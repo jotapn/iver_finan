@@ -1,17 +1,31 @@
 {% extends "base.html" %}
-{% load crispy_forms_tags finance_extras %}
+{% load finance_extras %}
 
 {% block page_title %}Despesas{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-start mb-3">
-    <form method="get" class="row g-2">
-        <div class="col-md-2">{{ filter.form.ano|as_crispy_field }}</div>
-        <div class="col-md-2">{{ filter.form.mes|as_crispy_field }}</div>
-        <div class="col-md-3">{{ filter.form.categoria|as_crispy_field }}</div>
-        <div class="col-md-3">{{ filter.form.subcategoria|as_crispy_field }}</div>
-        <div class="col-md-2">{{ filter.form.pago|as_crispy_field }}</div>
-        <div class="col-12"><button class="btn btn-outline-secondary">Filtrar</button></div>
+    <form method="get" class="row g-3 filter-toolbar">
+        <div class="col-md-4">
+            <label class="form-label" for="{{ filter.form.periodo.id_for_label }}">Período</label>
+            {{ filter.form.periodo }}
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" for="{{ filter.form.categoria.id_for_label }}">Categoria</label>
+            {{ filter.form.categoria }}
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" for="{{ filter.form.subcategoria.id_for_label }}">Subcategoria</label>
+            {{ filter.form.subcategoria }}
+        </div>
+        <div class="col-md-2">
+            <label class="form-label" for="{{ filter.form.pago.id_for_label }}">Status</label>
+            {{ filter.form.pago }}
+        </div>
+        <div class="col-12 d-flex gap-2">
+            <button class="btn btn-outline-secondary" type="submit">Filtrar</button>
+            <a class="btn btn-outline-primary" href="{% url 'despesas:list' %}">Limpar</a>
+        </div>
     </form>
     <div class="d-flex gap-2">
         <a class="btn btn-outline-primary" href="{% url 'despesas:summary' %}?ano={{ selected_year }}&mes={{ selected_month }}">Resumo mensal</a>
@@ -21,11 +35,50 @@
 
 <div class="row g-4 mb-4">
     <div class="col-lg-4">
-        <div class="card shadow-sm border-0">
-            <div class="card-body">
-                <h3 class="h6">Gráfico por categoria</h3>
-                <div class="chart-box">
-                    <canvas id="expenseChart"></canvas>
+        <div class="d-grid gap-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h3 class="h6">Gráfico por categoria</h3>
+                    <div class="chart-box">
+                        <canvas id="expenseChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h3 class="h6">Gráfico por subcategoria</h3>
+                    <div class="chart-box">
+                        <canvas id="subcategoryExpenseChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h3 class="h6">Top 10 de subcategorias</h3>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0 align-middle">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Subcategoria</th>
+                                    <th class="text-end">Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in top_subcategories %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ item.subcategoria__nome }}</td>
+                                        <td class="text-end">{{ item.total|brl }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="3" class="text-center py-3">Nenhuma subcategoria encontrada.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -37,8 +90,9 @@
                     <thead>
                         <tr>
                             <th>Descrição</th>
-                            <th>Categoria</th>
                             <th>Subcategoria</th>
+                            <th>Vencimento</th>
+                            <th>Pagamento</th>
                             <th>Valor</th>
                             <th>Status</th>
                             <th></th>
@@ -48,8 +102,9 @@
                         {% for object in object_list %}
                             <tr>
                                 <td>{{ object.descricao }}</td>
-                                <td>{{ object.categoria.nome }}</td>
                                 <td>{{ object.subcategoria.nome }}</td>
+                                <td>{{ object.data_vencimento|date:"d/m/Y"|default:"-" }}</td>
+                                <td>{{ object.data_pagamento|date:"d/m/Y"|default:"-" }}</td>
                                 <td>{{ object.valor|brl }}</td>
                                 <td>{% if object.pago %}<span class="badge text-bg-success">Pago</span>{% else %}<span class="badge text-bg-warning">Pendente</span>{% endif %}</td>
                                 <td class="text-end">
@@ -63,7 +118,7 @@
                                 </td>
                             </tr>
                         {% empty %}
-                            <tr><td colspan="6" class="text-center py-4">Nenhuma despesa encontrada.</td></tr>
+                            <tr><td colspan="7" class="text-center py-4">Nenhuma despesa encontrada.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -71,10 +126,54 @@
         </div>
     </div>
 </div>
+{{ subcategory_options|json_script:"subcategory-options" }}
 {% endblock %}
 
 {% block extra_js %}
 <script>
+const categoryField = document.getElementById('{{ filter.form.categoria.id_for_label }}');
+const subcategoryField = document.getElementById('{{ filter.form.subcategoria.id_for_label }}');
+const subcategoryOptions = JSON.parse(document.getElementById('subcategory-options').textContent);
+
+function refreshSubcategoryOptions() {
+    if (!categoryField || !subcategoryField) {
+        return;
+    }
+
+    const selectedCategory = categoryField.value;
+    const currentValue = subcategoryField.value;
+    const options = selectedCategory ? (subcategoryOptions[selectedCategory] || []) : [];
+
+    subcategoryField.innerHTML = '';
+
+    const emptyOption = document.createElement('option');
+    emptyOption.value = '';
+    emptyOption.textContent = '---------';
+    subcategoryField.appendChild(emptyOption);
+
+    for (const option of options) {
+        const element = document.createElement('option');
+        element.value = option.id;
+        element.textContent = option.nome;
+        if (option.id === currentValue) {
+            element.selected = true;
+        }
+        subcategoryField.appendChild(element);
+    }
+
+    if (currentValue && !options.some((option) => option.id === currentValue)) {
+        subcategoryField.value = '';
+    }
+}
+
+if (categoryField && subcategoryField) {
+    refreshSubcategoryOptions();
+    categoryField.addEventListener('change', function () {
+        subcategoryField.value = '';
+        refreshSubcategoryOptions();
+    });
+}
+
 new Chart(document.getElementById('expenseChart'), {
     type: 'bar',
     data: {
@@ -88,6 +187,24 @@ new Chart(document.getElementById('expenseChart'), {
         scales: {
             x: { ticks: { color: '#2d4b42' }, grid: { display: false } },
             y: { ticks: { color: '#2d4b42' }, grid: { color: 'rgba(33, 58, 51, 0.08)' } }
+        }
+    }
+});
+
+new Chart(document.getElementById('subcategoryExpenseChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ subcategory_chart_data.labels|safe }},
+        datasets: [{ label: 'Valor', data: {{ subcategory_chart_data.values|safe }}, backgroundColor: '#c3a96a', borderRadius: 10 }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: { legend: { labels: { color: '#182b25' } } },
+        scales: {
+            x: { ticks: { color: '#2d4b42' }, grid: { color: 'rgba(33, 58, 51, 0.08)' } },
+            y: { ticks: { color: '#2d4b42' }, grid: { display: false } }
         }
     }
 });

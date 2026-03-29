@@ -147,6 +147,22 @@ body {
     box-shadow: 0 0 0 0.2rem rgba(45, 75, 66, 0.18);
 }
 
+.filter-toolbar .form-label {
+    margin-bottom: 0.35rem;
+    color: var(--iver-forest-deep);
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+.filter-toolbar .form-select,
+.filter-toolbar .form-control {
+    min-height: 48px;
+    background-color: rgba(255, 252, 246, 0.96);
+    border: 1px solid rgba(33, 58, 51, 0.28);
+    border-radius: 0.75rem;
+    box-shadow: none;
+}
+
 .badge.text-bg-success {
     background-color: #33584d !important;
 }
