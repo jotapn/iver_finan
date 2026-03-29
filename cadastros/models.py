@@ -28,7 +28,7 @@ class Setor(models.Model):
 class Cargo(models.Model):
     nome = models.CharField("nome", max_length=120)
     setor = models.ForeignKey(Setor, verbose_name="setor", on_delete=models.PROTECT, related_name="cargos")
-    comissao_percentual = models.DecimalField("comissão percentual", max_digits=5, decimal_places=4, default=0)
+    comissao_percentual = models.DecimalField("comissao percentual", max_digits=5, decimal_places=4, default=0)
 
     class Meta:
         verbose_name = "cargo"
@@ -43,9 +43,19 @@ class Cargo(models.Model):
 class Colaborador(models.Model):
     nome = models.CharField("nome", max_length=150)
     cargo = models.ForeignKey(Cargo, verbose_name="cargo", on_delete=models.PROTECT, related_name="colaboradores")
+    documento = models.CharField("documento", max_length=30, blank=True)
+    telefone = models.CharField("telefone", max_length=30, blank=True)
+    email = models.EmailField("email", blank=True)
+    cep = models.CharField("cep", max_length=10, blank=True)
+    endereco = models.CharField("endereco", max_length=255, blank=True)
+    numero = models.CharField("numero", max_length=20, blank=True)
+    complemento = models.CharField("complemento", max_length=120, blank=True)
+    bairro = models.CharField("bairro", max_length=120, blank=True)
+    cidade = models.CharField("cidade", max_length=120, blank=True)
+    uf = models.CharField("uf", max_length=2, blank=True)
     ativo = models.BooleanField("ativo", default=True)
-    data_admissao = models.DateField("data de admissão")
-    data_demissao = models.DateField("data de demissão", null=True, blank=True)
+    data_admissao = models.DateField("data de admissao")
+    data_demissao = models.DateField("data de demissao", null=True, blank=True)
 
     class Meta:
         verbose_name = "colaborador"
@@ -97,5 +107,3 @@ class SubcategoriaDeSpesa(models.Model):
 
     def __str__(self):
         return f"{self.categoria.nome} - {self.nome}"
-
-# Create your models here.

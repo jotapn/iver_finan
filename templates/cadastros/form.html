@@ -17,3 +17,110 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+{% if cadastro_slug == "colaboradores" %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const cpfField = document.getElementById('id_documento');
+    const cepField = document.getElementById('id_cep');
+    const enderecoField = document.getElementById('id_endereco');
+    const bairroField = document.getElementById('id_bairro');
+    const cidadeField = document.getElementById('id_cidade');
+    const ufField = document.getElementById('id_uf');
+    const numeroField = document.getElementById('id_numero');
+
+    if (!cepField) {
+        return;
+    }
+
+    function onlyDigits(value) {
+        return (value || '').replace(/\D/g, '');
+    }
+
+    function maskCpf(value) {
+        const digits = onlyDigits(value).slice(0, 11);
+        if (digits.length <= 3) {
+            return digits;
+        }
+        if (digits.length <= 6) {
+            return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+        }
+        if (digits.length <= 9) {
+            return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+        }
+        return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+    }
+
+    function maskCep(value) {
+        const digits = onlyDigits(value).slice(0, 8);
+        if (digits.length <= 5) {
+            return digits;
+        }
+        return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+    }
+
+    if (cpfField) {
+        cpfField.addEventListener('input', function () {
+            cpfField.value = maskCpf(cpfField.value);
+        });
+        cpfField.value = maskCpf(cpfField.value);
+    }
+
+    function fillAddress(data) {
+        if (enderecoField) {
+            enderecoField.value = data.logradouro || '';
+        }
+        if (bairroField) {
+            bairroField.value = data.bairro || '';
+        }
+        if (cidadeField) {
+            cidadeField.value = data.localidade || '';
+        }
+        if (ufField) {
+            ufField.value = data.uf || '';
+        }
+        if (numeroField && !numeroField.value) {
+            numeroField.focus();
+        }
+    }
+
+    async function fetchCep() {
+        const cep = onlyDigits(cepField.value);
+        if (cep.length !== 8) {
+            return;
+        }
+
+        cepField.classList.add('is-loading');
+
+        try {
+            const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+            const data = await response.json();
+
+            if (data.erro) {
+                cepField.setCustomValidity('CEP nao encontrado.');
+                cepField.reportValidity();
+                return;
+            }
+
+            cepField.setCustomValidity('');
+            fillAddress(data);
+        } catch (error) {
+            cepField.setCustomValidity('Nao foi possivel consultar o CEP agora.');
+            cepField.reportValidity();
+        } finally {
+            cepField.classList.remove('is-loading');
+        }
+    }
+
+    cepField.addEventListener('input', function () {
+        cepField.value = maskCep(cepField.value);
+        cepField.setCustomValidity('');
+    });
+    cepField.value = maskCep(cepField.value);
+    cepField.addEventListener('blur', fetchCep);
+    cepField.addEventListener('change', fetchCep);
+});
+</script>
+{% endif %}
+{% endblock %}

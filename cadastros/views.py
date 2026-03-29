@@ -27,7 +27,27 @@ class CadastroConfigMixin(LoginRequiredMixin):
         context["cadastros"] = CADASTRO_CONFIG
         context["cadastro_title"] = self.get_config()["title"]
         context["cadastro_slug"] = self.kwargs.get("model_slug")
-        context["list_fields"] = [field for field in self.get_model()._meta.fields if field.name != "id"]
+        configured_fields = self.get_config().get("list_fields")
+        if configured_fields:
+            resolved_fields = []
+            field_map = {field.name: field for field in self.get_model()._meta.fields}
+            for item in configured_fields:
+                if isinstance(item, dict):
+                    resolved_fields.append(item)
+                elif item in field_map:
+                    resolved_fields.append(
+                        {
+                            "name": item,
+                            "label": field_map[item].verbose_name,
+                        }
+                    )
+            context["list_fields"] = resolved_fields
+        else:
+            context["list_fields"] = [
+                {"name": field.name, "label": field.verbose_name}
+                for field in self.get_model()._meta.fields
+                if field.name != "id"
+            ]
         return context
 
 

@@ -14,7 +14,7 @@
             <thead>
                 <tr>
                     {% for field in list_fields %}
-                        <th>{{ field.verbose_name|capfirst }}</th>
+                        <th>{{ field.label|capfirst }}</th>
                     {% endfor %}
                     <th></th>
                 </tr>
@@ -23,7 +23,21 @@
                 {% for object in object_list %}
                     <tr>
                         {% for field in list_fields %}
-                            <td>{{ object|attr:field.name|default_if_none:"" }}</td>
+                            <td>
+                                {% if cadastro_slug == "colaboradores" and field.name == "ativo" %}
+                                    {% if object.ativo %}
+                                        <span class="badge text-bg-success">Ativo</span>
+                                    {% else %}
+                                        <span class="badge text-bg-secondary">Inativo</span>
+                                    {% endif %}
+                                {% elif cadastro_slug == "colaboradores" and field.name == "cargo" %}
+                                    {{ object.cargo.nome|default_if_none:"" }}
+                                {% elif cadastro_slug == "colaboradores" and field.name == "setor" %}
+                                    {{ object.cargo.setor.nome|default_if_none:"" }}
+                                {% else %}
+                                    {{ object|attr:field.name|default_if_none:"" }}
+                                {% endif %}
+                            </td>
                         {% endfor %}
                         <td class="text-end">
                             <a class="btn btn-outline-primary btn-sm" href="{% url 'cadastros:update' cadastro_slug object.pk %}">Editar</a>
