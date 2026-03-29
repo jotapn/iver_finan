@@ -163,6 +163,43 @@ body {
     box-shadow: none;
 }
 
+.sort-link {
+    color: var(--iver-forest-deep);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-weight: 600;
+}
+
+.sort-link:hover {
+    color: var(--iver-forest);
+}
+
+.sort-indicator {
+    font-size: 0.82rem;
+    color: var(--iver-forest-soft);
+}
+
+.expense-table thead th {
+    white-space: nowrap;
+    background: rgba(255, 251, 244, 0.95);
+}
+
+.expense-pagination {
+    background: rgba(255, 251, 244, 0.8);
+}
+
+.recurring-badge {
+    background-color: rgba(33, 58, 51, 0.12);
+    color: var(--iver-forest-deep);
+    border: 1px solid rgba(33, 58, 51, 0.18);
+}
+
+.recurring-alert {
+    border-left: 4px solid var(--iver-forest-soft);
+}
+
 .badge.text-bg-success {
     background-color: #33584d !important;
 }

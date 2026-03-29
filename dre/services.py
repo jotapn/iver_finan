@@ -5,6 +5,7 @@ from openpyxl import Workbook
 
 from cadastros.models import CategoriaDeSpesa, SubcategoriaDeSpesa
 from despesas.models import Despesa
+from despesas.services import generate_recurring_expenses_until
 from faturamento.services import monthly_summary
 from folha.models import DespesaTrabalhistaMensal
 
@@ -45,6 +46,7 @@ def _total_pessoal(tipo: str, year: int, month: int) -> Decimal:
 
 
 def build_dre(year: int) -> dict:
+    generate_recurring_expenses_until(year, 12)
     months = list(range(1, 13))
     receita_bruta = {month: monthly_summary(year, month)["total_bruto"] for month in months}
     taxa_servico = {month: (receita_bruta[month] * Decimal("0.10")).quantize(Decimal("0.01")) for month in months}

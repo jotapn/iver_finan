@@ -86,22 +86,71 @@
     <div class="col-lg-8">
         <div class="card shadow-sm border-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
+                <table class="table table-hover mb-0 expense-table" id="expense-table">
                     <thead>
                         <tr>
-                            <th>Descrição</th>
-                            <th>Subcategoria</th>
-                            <th>Vencimento</th>
-                            <th>Pagamento</th>
-                            <th>Valor</th>
-                            <th>Status</th>
+                            <th>
+                                <a class="sort-link" href="?{% if ordering_base_query %}{{ ordering_base_query }}&{% endif %}ordenar={% if current_ordering == 'descricao' %}-descricao{% else %}descricao{% endif %}">
+                                    Descrição
+                                    {% if current_ordering == 'descricao' %}<span class="sort-indicator" aria-hidden="true">↑</span>{% elif current_ordering == '-descricao' %}<span class="sort-indicator" aria-hidden="true">↓</span>{% else %}<span class="sort-indicator" aria-hidden="true">↕</span>{% endif %}
+                                </a>
+                            </th>
+                            <th>
+                                <a class="sort-link" href="?{% if ordering_base_query %}{{ ordering_base_query }}&{% endif %}ordenar={% if current_ordering == 'subcategoria' %}-subcategoria{% else %}subcategoria{% endif %}">
+                                    Subcategoria
+                                    {% if current_ordering == 'subcategoria' %}<span class="sort-indicator" aria-hidden="true">↑</span>{% elif current_ordering == '-subcategoria' %}<span class="sort-indicator" aria-hidden="true">↓</span>{% else %}<span class="sort-indicator" aria-hidden="true">↕</span>{% endif %}
+                                </a>
+                            </th>
+                            <th>
+                                <a class="sort-link" href="?{% if ordering_base_query %}{{ ordering_base_query }}&{% endif %}ordenar={% if current_ordering == 'vencimento' %}-vencimento{% else %}vencimento{% endif %}">
+                                    Vencimento
+                                    {% if current_ordering == 'vencimento' %}<span class="sort-indicator" aria-hidden="true">↑</span>{% elif current_ordering == '-vencimento' %}<span class="sort-indicator" aria-hidden="true">↓</span>{% else %}<span class="sort-indicator" aria-hidden="true">↕</span>{% endif %}
+                                </a>
+                            </th>
+                            <th>
+                                <a class="sort-link" href="?{% if ordering_base_query %}{{ ordering_base_query }}&{% endif %}ordenar={% if current_ordering == 'pagamento' %}-pagamento{% else %}pagamento{% endif %}">
+                                    Pagamento
+                                    {% if current_ordering == 'pagamento' %}<span class="sort-indicator" aria-hidden="true">↑</span>{% elif current_ordering == '-pagamento' %}<span class="sort-indicator" aria-hidden="true">↓</span>{% else %}<span class="sort-indicator" aria-hidden="true">↕</span>{% endif %}
+                                </a>
+                            </th>
+                            <th>
+                                <a class="sort-link" href="?{% if ordering_base_query %}{{ ordering_base_query }}&{% endif %}ordenar={% if current_ordering == 'valor' %}-valor{% else %}valor{% endif %}">
+                                    Valor
+                                    {% if current_ordering == 'valor' %}<span class="sort-indicator" aria-hidden="true">↑</span>{% elif current_ordering == '-valor' %}<span class="sort-indicator" aria-hidden="true">↓</span>{% else %}<span class="sort-indicator" aria-hidden="true">↕</span>{% endif %}
+                                </a>
+                            </th>
+                            <th>
+                                <a class="sort-link" href="?{% if ordering_base_query %}{{ ordering_base_query }}&{% endif %}ordenar={% if current_ordering == 'status' %}-status{% else %}status{% endif %}">
+                                    Status
+                                    {% if current_ordering == 'status' %}<span class="sort-indicator" aria-hidden="true">↑</span>{% elif current_ordering == '-status' %}<span class="sort-indicator" aria-hidden="true">↓</span>{% else %}<span class="sort-indicator" aria-hidden="true">↕</span>{% endif %}
+                                </a>
+                            </th>
                             <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for object in object_list %}
                             <tr>
-                                <td>{{ object.descricao }}</td>
+                                <td>
+                                    <div class="d-flex flex-column gap-1">
+                                        <span>{{ object.descricao }}</span>
+                                        {% if object.recorrencia %}
+                                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                                <span class="badge recurring-badge">
+                                                    {% if object.recorrencia.ativa %}Recorrente ativa{% else %}Recorrência encerrada{% endif %}
+                                                </span>
+                                                <small class="text-muted">
+                                                    Início {{ object.recorrencia.data_inicio|date:"m/Y" }}
+                                                    {% if object.recorrencia.data_fim %}
+                                                        • até {{ object.recorrencia.data_fim|date:"m/Y" }}
+                                                    {% else %}
+                                                        • sem término
+                                                    {% endif %}
+                                                </small>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
                                 <td>{{ object.subcategoria.nome }}</td>
                                 <td>{{ object.data_vencimento|date:"d/m/Y"|default:"-" }}</td>
                                 <td>{{ object.data_pagamento|date:"d/m/Y"|default:"-" }}</td>
@@ -115,6 +164,7 @@
                                         </form>
                                     {% endif %}
                                     <a class="btn btn-outline-primary btn-sm" href="{% url 'despesas:update' object.pk %}">Editar</a>
+                                    <a class="btn btn-outline-danger btn-sm" href="{% url 'despesas:delete' object.pk %}">Excluir</a>
                                 </td>
                             </tr>
                         {% empty %}
@@ -123,6 +173,21 @@
                     </tbody>
                 </table>
             </div>
+            {% if is_paginated %}
+                <div class="d-flex justify-content-between align-items-center px-3 py-3 border-top expense-pagination">
+                    <small class="text-muted">
+                        Página {{ page_obj.number }} de {{ paginator.num_pages }}
+                    </small>
+                    <div class="d-flex gap-2">
+                        {% if page_obj.has_previous %}
+                            <a class="btn btn-outline-secondary btn-sm" href="?{% if pagination_base_query %}{{ pagination_base_query }}&{% endif %}page={{ page_obj.previous_page_number }}">Anterior</a>
+                        {% endif %}
+                        {% if page_obj.has_next %}
+                            <a class="btn btn-outline-secondary btn-sm" href="?{% if pagination_base_query %}{{ pagination_base_query }}&{% endif %}page={{ page_obj.next_page_number }}">Próxima</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -131,48 +196,50 @@
 
 {% block extra_js %}
 <script>
-const categoryField = document.getElementById('{{ filter.form.categoria.id_for_label }}');
-const subcategoryField = document.getElementById('{{ filter.form.subcategoria.id_for_label }}');
-const subcategoryOptions = JSON.parse(document.getElementById('subcategory-options').textContent);
+document.addEventListener('DOMContentLoaded', function () {
+    const categoryField = document.getElementById('{{ filter.form.categoria.id_for_label }}');
+    const subcategoryField = document.getElementById('{{ filter.form.subcategoria.id_for_label }}');
+    const subcategoryOptions = JSON.parse(document.getElementById('subcategory-options').textContent);
 
-function refreshSubcategoryOptions() {
-    if (!categoryField || !subcategoryField) {
-        return;
-    }
-
-    const selectedCategory = categoryField.value;
-    const currentValue = subcategoryField.value;
-    const options = selectedCategory ? (subcategoryOptions[selectedCategory] || []) : [];
-
-    subcategoryField.innerHTML = '';
-
-    const emptyOption = document.createElement('option');
-    emptyOption.value = '';
-    emptyOption.textContent = '---------';
-    subcategoryField.appendChild(emptyOption);
-
-    for (const option of options) {
-        const element = document.createElement('option');
-        element.value = option.id;
-        element.textContent = option.nome;
-        if (option.id === currentValue) {
-            element.selected = true;
+    function refreshSubcategoryOptions() {
+        if (!categoryField || !subcategoryField) {
+            return;
         }
-        subcategoryField.appendChild(element);
+
+        const selectedCategory = categoryField.value;
+        const currentValue = subcategoryField.value;
+        const options = selectedCategory ? (subcategoryOptions[selectedCategory] || []) : [];
+
+        subcategoryField.innerHTML = '';
+
+        const emptyOption = document.createElement('option');
+        emptyOption.value = '';
+        emptyOption.textContent = '---------';
+        subcategoryField.appendChild(emptyOption);
+
+        for (const option of options) {
+            const element = document.createElement('option');
+            element.value = option.id;
+            element.textContent = option.nome;
+            if (option.id === currentValue) {
+                element.selected = true;
+            }
+            subcategoryField.appendChild(element);
+        }
+
+        if (currentValue && !options.some((option) => option.id === currentValue)) {
+            subcategoryField.value = '';
+        }
     }
 
-    if (currentValue && !options.some((option) => option.id === currentValue)) {
-        subcategoryField.value = '';
-    }
-}
-
-if (categoryField && subcategoryField) {
-    refreshSubcategoryOptions();
-    categoryField.addEventListener('change', function () {
-        subcategoryField.value = '';
+    if (categoryField && subcategoryField) {
         refreshSubcategoryOptions();
-    });
-}
+        categoryField.addEventListener('change', function () {
+            subcategoryField.value = '';
+            refreshSubcategoryOptions();
+        });
+    }
+});
 
 new Chart(document.getElementById('expenseChart'), {
     type: 'bar',

@@ -7,6 +7,7 @@ from django.db.models import Sum
 from django.utils import timezone
 
 from despesas.models import Despesa
+from despesas.services import generate_recurring_expenses_until
 from faturamento.services import monthly_summary, rolling_month_chart
 from folha.models import BeneficioColaborador, PeriodoFolha
 
@@ -44,6 +45,7 @@ def get_pending_payments(year: int, month: int) -> list[dict]:
 
 def get_dashboard_context() -> dict:
     today = timezone.localdate()
+    generate_recurring_expenses_until(today.year, today.month)
     resumo_faturamento = monthly_summary(today.year, today.month)
     total_despesas = _zero(
         Despesa.objects.filter(ano_referencia=today.year, mes_referencia=today.month).aggregate(total=Sum("valor"))["total"]

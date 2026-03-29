@@ -6,14 +6,77 @@
 {% block content %}
 <div class="card shadow-sm border-0">
     <div class="card-body">
+        {% if recurrence_info %}
+            <div class="alert alert-info recurring-alert">
+                <strong>Recorrência:</strong>
+                {% if recurrence_info.ativa %}ativa{% else %}encerrada{% endif %}.
+                Início em {{ recurrence_info.data_inicio|date:"m/Y" }}.
+                {% if recurrence_info.data_fim %}
+                    Término em {{ recurrence_info.data_fim|date:"m/Y" }}.
+                {% else %}
+                    Sem data de término.
+                {% endif %}
+            </div>
+        {% endif %}
         <form method="post">
             {% csrf_token %}
             {{ form|crispy }}
             <div class="d-flex gap-2">
                 <button class="btn btn-primary" type="submit">Salvar</button>
+                {% if object %}
+                    <a class="btn btn-outline-danger" href="{% url 'despesas:delete' object.pk %}">Excluir</a>
+                {% endif %}
                 <a class="btn btn-outline-secondary" href="{% url 'despesas:list' %}">Cancelar</a>
             </div>
         </form>
     </div>
 </div>
+{{ subcategory_options|json_script:"subcategory-options-form" }}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const categoryField = document.getElementById('id_categoria');
+const subcategoryField = document.getElementById('id_subcategoria');
+const subcategoryOptions = JSON.parse(document.getElementById('subcategory-options-form').textContent);
+
+function refreshSubcategoryOptions() {
+    if (!categoryField || !subcategoryField) {
+        return;
+    }
+
+    const selectedCategory = categoryField.value;
+    const currentValue = subcategoryField.value;
+    const options = selectedCategory ? (subcategoryOptions[selectedCategory] || []) : [];
+
+    subcategoryField.innerHTML = '';
+
+    const emptyOption = document.createElement('option');
+    emptyOption.value = '';
+    emptyOption.textContent = '---------';
+    subcategoryField.appendChild(emptyOption);
+
+    for (const option of options) {
+        const element = document.createElement('option');
+        element.value = option.id;
+        element.textContent = option.nome;
+        if (option.id === currentValue) {
+            element.selected = true;
+        }
+        subcategoryField.appendChild(element);
+    }
+
+    if (currentValue && !options.some((option) => option.id === currentValue)) {
+        subcategoryField.value = '';
+    }
+}
+
+if (categoryField && subcategoryField) {
+    refreshSubcategoryOptions();
+    categoryField.addEventListener('change', function () {
+        subcategoryField.value = '';
+        refreshSubcategoryOptions();
+    });
+}
+</script>
 {% endblock %}
