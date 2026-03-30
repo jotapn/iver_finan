@@ -80,6 +80,7 @@ class ColaboradorForm(forms.ModelForm):
         fields = [
             "nome",
             "cargo",
+            "salario_bruto",
             "documento",
             "telefone",
             "email",

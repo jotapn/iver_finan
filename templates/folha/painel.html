@@ -24,13 +24,19 @@
                         <th>Prod. 1</th>
                         <th>Prod. 2</th>
                         <th>VT / Ajuda</th>
+                        <th>Total Recebido</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for lancamento in lancamentos %}
                         <tr>
-                            <td>{{ lancamento.colaborador.nome }}</td>
+                            <td>
+                                <div class="d-flex flex-column">
+                                    <span>{{ lancamento.colaborador.nome }}</span>
+                                    <small class="text-muted">{{ lancamento.colaborador.cargo.setor.nome }}</small>
+                                </div>
+                            </td>
                             <td>{{ lancamento.salario_bruto|brl }}</td>
                             <td>
                                 {{ lancamento.adiantamento_valor|brl }}
@@ -69,13 +75,14 @@
                                     {% endif %}
                                 {% endfor %}
                             </td>
+                            <td><strong>{{ lancamento.total_recebido|brl }}</strong></td>
                             <td class="text-end">
                                 <a class="btn btn-outline-primary btn-sm" href="{% url 'folha:update-lancamento' periodo.ano periodo.mes lancamento.pk %}">Editar</a>
                                 <a class="btn btn-outline-secondary btn-sm" href="{% url 'folha:history' periodo.ano periodo.mes lancamento.colaborador.pk %}">Histórico</a>
                             </td>
                         </tr>
                     {% empty %}
-                        <tr><td colspan="8" class="text-center py-4">Nenhum lançamento gerado.</td></tr>
+                        <tr><td colspan="9" class="text-center py-4">Nenhum lançamento gerado.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

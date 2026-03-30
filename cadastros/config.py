@@ -19,6 +19,7 @@ CADASTRO_CONFIG = {
         "title": "Colaboradores",
         "list_fields": [
             {"name": "nome", "label": "Nome"},
+            {"name": "salario_bruto", "label": "Salario bruto"},
             {"name": "documento", "label": "Documento"},
             {"name": "telefone", "label": "Telefone"},
             {"name": "email", "label": "Email"},

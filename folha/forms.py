@@ -17,7 +17,6 @@ class LancamentoColaboradorForm(forms.ModelForm):
     class Meta:
         model = LancamentoColaborador
         fields = [
-            "salario_bruto",
             "vale_consumo",
             "adicional_noturno",
             "dsr",

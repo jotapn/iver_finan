@@ -24,7 +24,7 @@ class CargoAdmin(admin.ModelAdmin):
 
 @admin.register(Colaborador)
 class ColaboradorAdmin(admin.ModelAdmin):
-    list_display = ("nome", "documento", "telefone", "email", "cargo", "ativo", "data_admissao", "data_demissao")
+    list_display = ("nome", "cargo", "salario_bruto", "documento", "telefone", "email", "ativo", "data_admissao", "data_demissao")
     list_filter = ("ativo", "cargo__setor")
     search_fields = ("nome", "documento", "telefone", "email", "cargo__nome")
 

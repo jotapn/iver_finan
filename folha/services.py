@@ -37,8 +37,9 @@ def sync_periodo(periodo: PeriodoFolha) -> PeriodoFolha:
         lancamento, _ = LancamentoColaborador.objects.get_or_create(
             periodo=periodo,
             colaborador=colaborador,
-            defaults={"salario_bruto": Decimal("0.00")},
+            defaults={"salario_bruto": colaborador.salario_bruto},
         )
+        lancamento.salario_bruto = colaborador.salario_bruto
         lancamento.produtividade_1_valor = produtividade_1
         lancamento.produtividade_2_valor = produtividade_2
         lancamento.save()

@@ -43,6 +43,7 @@ class Cargo(models.Model):
 class Colaborador(models.Model):
     nome = models.CharField("nome", max_length=150)
     cargo = models.ForeignKey(Cargo, verbose_name="cargo", on_delete=models.PROTECT, related_name="colaboradores")
+    salario_bruto = models.DecimalField("salario bruto", max_digits=10, decimal_places=2, default=0)
     documento = models.CharField("documento", max_length=30, blank=True)
     telefone = models.CharField("telefone", max_length=30, blank=True)
     email = models.EmailField("email", blank=True)
