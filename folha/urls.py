@@ -3,7 +3,6 @@ from django.urls import path
 from .views import (
     BeneficioCreateView,
     ColaboradorHistoricoView,
-    DespesaTrabalhistaCreateView,
     LancamentoColaboradorUpdateView,
     PeriodoFolhaCreateView,
     PeriodoFolhaDetailView,
@@ -21,7 +20,6 @@ urlpatterns = [
     path("<int:ano>/<int:mes>/colaborador/<int:pk>/", LancamentoColaboradorUpdateView.as_view(), name="update-lancamento"),
     path("<int:ano>/<int:mes>/colaborador/<int:pk>/historico/", ColaboradorHistoricoView.as_view(), name="history"),
     path("<int:ano>/<int:mes>/beneficio/novo/", BeneficioCreateView.as_view(), name="create-benefit"),
-    path("<int:ano>/<int:mes>/despesa-trabalhista/nova/", DespesaTrabalhistaCreateView.as_view(), name="create-expense"),
     path("lancamento/<int:pk>/pagar/<slug:campo>/", marcar_lancamento_pago, name="mark-launch-paid"),
     path("beneficio/<int:pk>/pagar/", marcar_beneficio_pago, name="mark-benefit-paid"),
 ]

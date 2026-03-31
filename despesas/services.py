@@ -10,12 +10,37 @@ from .models import Despesa, RecorrenciaDespesa
 
 
 def expense_summary_by_category(year: int, month: int):
-    return (
+    items = (
         Despesa.objects.filter(ano_referencia=year, mes_referencia=month)
         .values("categoria__nome", "subcategoria__nome")
         .annotate(total=Sum("valor"))
         .order_by("categoria__nome", "subcategoria__nome")
     )
+    grouped = []
+    current_category = None
+    current_group = None
+
+    for item in items:
+        category_name = item["categoria__nome"]
+        if category_name != current_category:
+            current_category = category_name
+            current_group = {
+                "categoria": category_name,
+                "total": Decimal("0.00"),
+                "subcategorias": [],
+            }
+            grouped.append(current_group)
+
+        subtotal = item["total"] or Decimal("0.00")
+        current_group["subcategorias"].append(
+            {
+                "subcategoria": item["subcategoria__nome"],
+                "total": subtotal,
+            }
+        )
+        current_group["total"] += subtotal
+
+    return grouped
 
 
 def expense_chart_by_category(year: int, month: int) -> dict:

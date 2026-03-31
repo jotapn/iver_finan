@@ -2,16 +2,19 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, ListView, UpdateView
 
+from usuarios.permissions import ModuleAccessMixin
+
 from .filters import RegistroFaturamentoFilter
 from .forms import RegistroFaturamentoForm
 from .models import RegistroFaturamento
 from .services import monthly_summary
 
 
-class RegistroFaturamentoListView(LoginRequiredMixin, ListView):
+class RegistroFaturamentoListView(ModuleAccessMixin, LoginRequiredMixin, ListView):
     model = RegistroFaturamento
     template_name = "faturamento/list.html"
     paginate_by = 31
+    required_module = "faturamento"
 
     def get_filterset(self):
         return RegistroFaturamentoFilter(self.request.GET or None, queryset=RegistroFaturamento.objects.all())
@@ -33,17 +36,19 @@ class RegistroFaturamentoListView(LoginRequiredMixin, ListView):
         return context
 
 
-class RegistroFaturamentoCreateView(LoginRequiredMixin, CreateView):
+class RegistroFaturamentoCreateView(ModuleAccessMixin, LoginRequiredMixin, CreateView):
     model = RegistroFaturamento
     form_class = RegistroFaturamentoForm
     template_name = "faturamento/form.html"
     success_url = reverse_lazy("faturamento:list")
+    required_module = "faturamento"
 
 
-class RegistroFaturamentoUpdateView(LoginRequiredMixin, UpdateView):
+class RegistroFaturamentoUpdateView(ModuleAccessMixin, LoginRequiredMixin, UpdateView):
     model = RegistroFaturamento
     form_class = RegistroFaturamentoForm
     template_name = "faturamento/form.html"
     success_url = reverse_lazy("faturamento:list")
+    required_module = "faturamento"
 
 # Create your views here.

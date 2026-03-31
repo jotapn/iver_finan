@@ -7,7 +7,6 @@
 <div class="d-flex gap-2 mb-3">
     <a class="btn btn-outline-secondary btn-sm" href="{% url 'folha:index' %}">Voltar</a>
     <a class="btn btn-outline-primary btn-sm" href="{% url 'folha:create-benefit' periodo.ano periodo.mes %}">Novo benefício</a>
-    <a class="btn btn-primary btn-sm" href="{% url 'folha:create-expense' periodo.ano periodo.mes %}">Nova despesa trabalhista</a>
 </div>
 
 <div class="card shadow-sm border-0 mb-4">
@@ -19,7 +18,12 @@
                     <tr>
                         <th>Colaborador</th>
                         <th>Salário Bruto</th>
-                        <th>Adiantamento</th>
+                        <th>
+                            <div class="d-flex flex-column">
+                                <span>Adiantamento</span>
+                                <small class="text-muted">40% do salário bruto</small>
+                            </div>
+                        </th>
                         <th>Saldo Final</th>
                         <th>Prod. 1</th>
                         <th>Prod. 2</th>
@@ -40,27 +44,51 @@
                             <td>{{ lancamento.salario_bruto|brl }}</td>
                             <td>
                                 {{ lancamento.adiantamento_valor|brl }}
+                                {% if lancamento.adiantamento_data %}
+                                    <div><small class="text-muted">Pgto: {{ lancamento.adiantamento_data|date:"d/m/Y" }}</small></div>
+                                {% endif %}
                                 {% if not lancamento.adiantamento_pago and lancamento.adiantamento_valor > 0 %}
                                     <form method="post" action="{% url 'folha:mark-launch-paid' lancamento.pk 'adiantamento' %}">{% csrf_token %}<button class="btn btn-sm btn-outline-success mt-1">Marcar</button></form>
-                                {% else %}<span class="badge text-bg-success">Pago</span>{% endif %}
+                                {% elif lancamento.adiantamento_pago %}
+                                    <span class="badge text-bg-success">Pago</span>
+                                    <form method="post" action="{% url 'folha:mark-launch-paid' lancamento.pk 'adiantamento' %}">{% csrf_token %}<button class="btn btn-sm btn-outline-secondary mt-1">Desfazer</button></form>
+                                {% else %}<span class="badge text-bg-light">Sem valor</span>{% endif %}
                             </td>
                             <td>
                                 {{ lancamento.saldo_final_valor|brl }}
+                                {% if lancamento.saldo_final_data %}
+                                    <div><small class="text-muted">Pgto: {{ lancamento.saldo_final_data|date:"d/m/Y" }}</small></div>
+                                {% endif %}
                                 {% if not lancamento.saldo_final_pago and lancamento.saldo_final_valor > 0 %}
                                     <form method="post" action="{% url 'folha:mark-launch-paid' lancamento.pk 'saldo-final' %}">{% csrf_token %}<button class="btn btn-sm btn-outline-success mt-1">Marcar</button></form>
-                                {% else %}<span class="badge text-bg-success">Pago</span>{% endif %}
+                                {% elif lancamento.saldo_final_pago %}
+                                    <span class="badge text-bg-success">Pago</span>
+                                    <form method="post" action="{% url 'folha:mark-launch-paid' lancamento.pk 'saldo-final' %}">{% csrf_token %}<button class="btn btn-sm btn-outline-secondary mt-1">Desfazer</button></form>
+                                {% else %}<span class="badge text-bg-light">Sem valor</span>{% endif %}
                             </td>
                             <td>
                                 {{ lancamento.produtividade_1_valor|brl }}
+                                {% if lancamento.produtividade_1_data %}
+                                    <div><small class="text-muted">Pgto: {{ lancamento.produtividade_1_data|date:"d/m/Y" }}</small></div>
+                                {% endif %}
                                 {% if not lancamento.produtividade_1_pago and lancamento.produtividade_1_valor > 0 %}
                                     <form method="post" action="{% url 'folha:mark-launch-paid' lancamento.pk 'produtividade-1' %}">{% csrf_token %}<button class="btn btn-sm btn-outline-success mt-1">Marcar</button></form>
-                                {% else %}<span class="badge text-bg-success">Pago</span>{% endif %}
+                                {% elif lancamento.produtividade_1_pago %}
+                                    <span class="badge text-bg-success">Pago</span>
+                                    <form method="post" action="{% url 'folha:mark-launch-paid' lancamento.pk 'produtividade-1' %}">{% csrf_token %}<button class="btn btn-sm btn-outline-secondary mt-1">Desfazer</button></form>
+                                {% else %}<span class="badge text-bg-light">Sem valor</span>{% endif %}
                             </td>
                             <td>
                                 {{ lancamento.produtividade_2_valor|brl }}
+                                {% if lancamento.produtividade_2_data %}
+                                    <div><small class="text-muted">Pgto: {{ lancamento.produtividade_2_data|date:"d/m/Y" }}</small></div>
+                                {% endif %}
                                 {% if not lancamento.produtividade_2_pago and lancamento.produtividade_2_valor > 0 %}
                                     <form method="post" action="{% url 'folha:mark-launch-paid' lancamento.pk 'produtividade-2' %}">{% csrf_token %}<button class="btn btn-sm btn-outline-success mt-1">Marcar</button></form>
-                                {% else %}<span class="badge text-bg-success">Pago</span>{% endif %}
+                                {% elif lancamento.produtividade_2_pago %}
+                                    <span class="badge text-bg-success">Pago</span>
+                                    <form method="post" action="{% url 'folha:mark-launch-paid' lancamento.pk 'produtividade-2' %}">{% csrf_token %}<button class="btn btn-sm btn-outline-secondary mt-1">Desfazer</button></form>
+                                {% else %}<span class="badge text-bg-light">Sem valor</span>{% endif %}
                             </td>
                             <td>
                                 {% for beneficio in beneficios %}
@@ -71,13 +99,16 @@
                                             <form method="post" action="{% url 'folha:mark-benefit-paid' beneficio.pk %}">{% csrf_token %}<button class="btn btn-sm btn-outline-success mt-1">Marcar</button></form>
                                         {% elif beneficio.pago %}
                                             <span class="badge text-bg-success">Pago</span>
+                                            <form method="post" action="{% url 'folha:mark-benefit-paid' beneficio.pk %}">{% csrf_token %}<button class="btn btn-sm btn-outline-secondary mt-1">Desfazer</button></form>
                                         {% endif %}
                                     {% endif %}
                                 {% endfor %}
                             </td>
                             <td><strong>{{ lancamento.total_recebido|brl }}</strong></td>
                             <td class="text-end">
-                                <a class="btn btn-outline-primary btn-sm" href="{% url 'folha:update-lancamento' periodo.ano periodo.mes lancamento.pk %}">Editar</a>
+                                <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#edit-modal-{{ lancamento.pk }}">
+                                    Ajustar
+                                </button>
                                 <a class="btn btn-outline-secondary btn-sm" href="{% url 'folha:history' periodo.ano periodo.mes lancamento.colaborador.pk %}">Histórico</a>
                             </td>
                         </tr>
@@ -90,40 +121,92 @@
     </div>
 </div>
 
-<div class="row g-4">
-    <div class="col-lg-6">
-        <div class="card shadow-sm border-0">
-            <div class="card-body">
-                <h3 class="h6">Despesas trabalhistas</h3>
-                <ul class="list-group list-group-flush">
-                    {% for item in despesas_trabalhistas %}
-                        <li class="list-group-item px-0 d-flex justify-content-between">
-                            <span>{{ item.get_tipo_display }}</span>
-                            <strong>{{ item.valor|brl }}</strong>
-                        </li>
-                    {% empty %}
-                        <li class="list-group-item px-0">Nenhuma despesa trabalhista lançada.</li>
-                    {% endfor %}
-                </ul>
+{% for lancamento in lancamentos %}
+    <div class="modal fade" id="edit-modal-{{ lancamento.pk }}" tabindex="-1" aria-labelledby="edit-modal-label-{{ lancamento.pk }}" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <form method="post" action="{% url 'folha:update-lancamento' periodo.ano periodo.mes lancamento.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="inline" value="1">
+                    <div class="modal-header">
+                        <div>
+                            <h5 class="modal-title" id="edit-modal-label-{{ lancamento.pk }}">Ajustar {{ lancamento.colaborador.nome }}</h5>
+                            <small class="text-muted">{{ lancamento.colaborador.cargo.setor.nome }}</small>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <div class="border rounded p-2 bg-light">
+                                    <div class="small text-muted">Salário bruto</div>
+                                    <strong>{{ lancamento.salario_bruto|brl }}</strong>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="border rounded p-2 bg-light">
+                                    <div class="small text-muted">Adiantamento atual</div>
+                                    <strong>{{ lancamento.adiantamento_valor|brl }}</strong>
+                                    {% if lancamento.adiantamento_data %}
+                                        <div><small class="text-muted">{{ lancamento.adiantamento_data|date:"d/m/Y" }}</small></div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label small mb-1" for="{{ lancamento.inline_form.adiantamento_data.id_for_label }}">Data do adiantamento</label>
+                                {{ lancamento.inline_form.adiantamento_data }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small mb-1" for="{{ lancamento.inline_form.saldo_final_valor.id_for_label }}">Saldo final</label>
+                                {{ lancamento.inline_form.saldo_final_valor }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small mb-1" for="{{ lancamento.inline_form.saldo_final_data.id_for_label }}">Data do saldo final</label>
+                                {{ lancamento.inline_form.saldo_final_data }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small mb-1" for="{{ lancamento.inline_form.vale_consumo.id_for_label }}">Vale consumo</label>
+                                {{ lancamento.inline_form.vale_consumo }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small mb-1" for="{{ lancamento.inline_form.produtividade_1_valor.id_for_label }}">Prod. 1 valor</label>
+                                {{ lancamento.inline_form.produtividade_1_valor }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small mb-1" for="{{ lancamento.inline_form.produtividade_1_data.id_for_label }}">Prod. 1 data</label>
+                                {{ lancamento.inline_form.produtividade_1_data }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small mb-1" for="{{ lancamento.inline_form.adicional_noturno.id_for_label }}">Adic. noturno</label>
+                                {{ lancamento.inline_form.adicional_noturno }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small mb-1" for="{{ lancamento.inline_form.produtividade_2_valor.id_for_label }}">Prod. 2 valor</label>
+                                {{ lancamento.inline_form.produtividade_2_valor }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small mb-1" for="{{ lancamento.inline_form.produtividade_2_data.id_for_label }}">Prod. 2 data</label>
+                                {{ lancamento.inline_form.produtividade_2_data }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small mb-1" for="{{ lancamento.inline_form.dsr.id_for_label }}">DSR</label>
+                                {{ lancamento.inline_form.dsr }}
+                            </div>
+                            <div class="col-12">
+                                <div class="small text-muted">Adiantamento permanece fixo em 40% do salário bruto.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button class="btn btn-primary" type="submit">Salvar</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-    <div class="col-lg-6">
-        <div class="card shadow-sm border-0">
-            <div class="card-body">
-                <h3 class="h6">Resumo do mês</h3>
-                <ul class="list-group list-group-flush">
-                    {% for item in resumo_trabalhista %}
-                        <li class="list-group-item px-0 d-flex justify-content-between">
-                            <span>{{ item.tipo }}</span>
-                            <strong>{{ item.total|brl }}</strong>
-                        </li>
-                    {% empty %}
-                        <li class="list-group-item px-0">Sem totais calculados.</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
+{% endfor %}
+
 {% endblock %}

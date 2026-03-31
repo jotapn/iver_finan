@@ -6,14 +6,17 @@ from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
-from .forms import BeneficioColaboradorForm, DespesaTrabalhistaMensalForm, LancamentoColaboradorForm, PeriodoFolhaForm
-from .models import BeneficioColaborador, DespesaTrabalhistaMensal, LancamentoColaborador, PeriodoFolha
-from .services import resumo_despesas_trabalhistas, sync_periodo
+from usuarios.permissions import ModuleAccessMixin, module_required
+
+from .forms import BeneficioColaboradorForm, LancamentoColaboradorForm, PeriodoFolhaForm
+from .models import BeneficioColaborador, LancamentoColaborador, PeriodoFolha
+from .services import sync_periodo
 
 
-class PeriodoFolhaListView(LoginRequiredMixin, ListView):
+class PeriodoFolhaListView(ModuleAccessMixin, LoginRequiredMixin, ListView):
     model = PeriodoFolha
     template_name = "folha/index.html"
+    required_module = "folha"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -21,10 +24,11 @@ class PeriodoFolhaListView(LoginRequiredMixin, ListView):
         return context
 
 
-class PeriodoFolhaCreateView(LoginRequiredMixin, CreateView):
+class PeriodoFolhaCreateView(ModuleAccessMixin, LoginRequiredMixin, CreateView):
     model = PeriodoFolha
     form_class = PeriodoFolhaForm
     success_url = reverse_lazy("folha:index")
+    required_module = "folha"
 
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -32,10 +36,11 @@ class PeriodoFolhaCreateView(LoginRequiredMixin, CreateView):
         return response
 
 
-class PeriodoFolhaDetailView(LoginRequiredMixin, DetailView):
+class PeriodoFolhaDetailView(ModuleAccessMixin, LoginRequiredMixin, DetailView):
     model = PeriodoFolha
     template_name = "folha/painel.html"
     context_object_name = "periodo"
+    required_module = "folha"
 
     def get_object(self, queryset=None):
         periodo = get_object_or_404(PeriodoFolha, ano=self.kwargs["ano"], mes=self.kwargs["mes"])
@@ -45,25 +50,34 @@ class PeriodoFolhaDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         periodo = self.object
-        context["lancamentos"] = periodo.lancamentos.select_related("colaborador", "colaborador__cargo", "colaborador__cargo__setor")
+        lancamentos = list(periodo.lancamentos.select_related("colaborador", "colaborador__cargo", "colaborador__cargo__setor"))
+        for lancamento in lancamentos:
+            lancamento.inline_form = LancamentoColaboradorForm(instance=lancamento, prefix=f"lanc-{lancamento.pk}")
+        context["lancamentos"] = lancamentos
         context["beneficios"] = periodo.beneficios.select_related("colaborador")
-        context["despesas_trabalhistas"] = periodo.despesas_trabalhistas.select_related("banco")
-        context["resumo_trabalhista"] = resumo_despesas_trabalhistas(periodo)
         return context
 
 
-class LancamentoColaboradorUpdateView(LoginRequiredMixin, UpdateView):
+class LancamentoColaboradorUpdateView(ModuleAccessMixin, LoginRequiredMixin, UpdateView):
     model = LancamentoColaborador
     form_class = LancamentoColaboradorForm
     template_name = "folha/lancamento_form.html"
+    required_module = "folha"
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        if self.request.method == "POST" and self.request.POST.get("inline") == "1":
+            kwargs["prefix"] = f"lanc-{self.object.pk}"
+        return kwargs
 
     def get_success_url(self):
         return reverse("folha:detail", kwargs={"ano": self.object.periodo.ano, "mes": self.object.periodo.mes})
 
 
-class ColaboradorHistoricoView(LoginRequiredMixin, ListView):
+class ColaboradorHistoricoView(ModuleAccessMixin, LoginRequiredMixin, ListView):
     template_name = "folha/colaborador_historico.html"
     context_object_name = "historico"
+    required_module = "folha"
 
     def get_queryset(self):
         return LancamentoColaborador.objects.filter(colaborador_id=self.kwargs["pk"]).select_related("periodo", "colaborador")
@@ -74,8 +88,9 @@ class ColaboradorHistoricoView(LoginRequiredMixin, ListView):
         return context
 
 
-class PeriodoFormMixin(LoginRequiredMixin):
+class PeriodoFormMixin(ModuleAccessMixin, LoginRequiredMixin):
     periodo = None
+    required_module = "folha"
 
     def dispatch(self, request, *args, **kwargs):
         self.periodo = get_object_or_404(PeriodoFolha, ano=kwargs["ano"], mes=kwargs["mes"])
@@ -95,17 +110,8 @@ class BeneficioCreateView(PeriodoFormMixin, CreateView):
         return super().form_valid(form)
 
 
-class DespesaTrabalhistaCreateView(PeriodoFormMixin, CreateView):
-    model = DespesaTrabalhistaMensal
-    form_class = DespesaTrabalhistaMensalForm
-    template_name = "folha/despesa_trabalhista_form.html"
-
-    def form_valid(self, form):
-        form.instance.periodo = self.periodo
-        return super().form_valid(form)
-
-
 @login_required
+@module_required("folha")
 def marcar_lancamento_pago(request, pk, campo):
     lancamento = get_object_or_404(LancamentoColaborador, pk=pk)
     campos_validos = {
@@ -118,18 +124,27 @@ def marcar_lancamento_pago(request, pk, campo):
         raise Http404("Pagamento inválido.")
     if request.method == "POST":
         pago_field, data_field = campos_validos[campo]
-        setattr(lancamento, pago_field, True)
-        setattr(lancamento, data_field, timezone.localdate())
+        if getattr(lancamento, pago_field):
+            setattr(lancamento, pago_field, False)
+            setattr(lancamento, data_field, None)
+        else:
+            setattr(lancamento, pago_field, True)
+            setattr(lancamento, data_field, timezone.localdate())
         lancamento.save(update_fields=[pago_field, data_field])
     return redirect("folha:detail", ano=lancamento.periodo.ano, mes=lancamento.periodo.mes)
 
 
 @login_required
+@module_required("folha")
 def marcar_beneficio_pago(request, pk):
     beneficio = get_object_or_404(BeneficioColaborador, pk=pk)
     if request.method == "POST":
-        beneficio.pago = True
-        beneficio.data_pagamento = timezone.localdate()
+        if beneficio.pago:
+            beneficio.pago = False
+            beneficio.data_pagamento = None
+        else:
+            beneficio.pago = True
+            beneficio.data_pagamento = timezone.localdate()
         beneficio.save(update_fields=["pago", "data_pagamento"])
     return redirect("folha:detail", ano=beneficio.periodo.ano, mes=beneficio.periodo.mes)
 

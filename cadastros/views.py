@@ -3,10 +3,14 @@ from django.http import Http404
 from django.urls import reverse
 from django.views.generic import CreateView, DeleteView, ListView, TemplateView, UpdateView
 
+from usuarios.permissions import ModuleAccessMixin
+
 from .config import CADASTRO_CONFIG
 
 
-class CadastroConfigMixin(LoginRequiredMixin):
+class CadastroConfigMixin(ModuleAccessMixin, LoginRequiredMixin):
+    required_module = "cadastros"
+
     def get_config(self):
         slug = self.kwargs.get("model_slug")
         if slug not in CADASTRO_CONFIG:
@@ -51,8 +55,9 @@ class CadastroConfigMixin(LoginRequiredMixin):
         return context
 
 
-class CadastroIndexView(LoginRequiredMixin, TemplateView):
+class CadastroIndexView(ModuleAccessMixin, LoginRequiredMixin, TemplateView):
     template_name = "cadastros/index.html"
+    required_module = "cadastros"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

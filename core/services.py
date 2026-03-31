@@ -56,7 +56,13 @@ def get_dashboard_context() -> dict:
         folha_total = _zero(periodo.lancamentos.aggregate(total=Sum("salario_bruto"))["total"])
         folha_total += _zero(periodo.beneficios.aggregate(total=Sum("vale_transporte"))["total"])
         folha_total += _zero(periodo.beneficios.aggregate(total=Sum("ajuda_custo"))["total"])
-        folha_total += _zero(periodo.despesas_trabalhistas.aggregate(total=Sum("valor"))["total"])
+        folha_total += _zero(
+            Despesa.objects.filter(
+                ano_referencia=today.year,
+                mes_referencia=today.month,
+                categoria__nome="Despesas com colaboradores",
+            ).aggregate(total=Sum("valor"))["total"]
+        )
 
     saldo = resumo_faturamento["total_liquido"] - total_despesas
     proximos_7 = today + timedelta(days=7)

@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     "despesas",
     "folha",
     "dre",
+    "usuarios",
 ]
 
 MIDDLEWARE = [

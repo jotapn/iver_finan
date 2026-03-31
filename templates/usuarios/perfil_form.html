@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block page_title %}Editar perfil{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <div class="mb-3">
+            <h3 class="h6 mb-1">{{ object.user.username }}</h3>
+            <p class="text-muted mb-0">Atualize apenas os dados do perfil vinculado.</p>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary" type="submit">Salvar perfil</button>
+                <a class="btn btn-outline-secondary" href="{% url 'usuarios:list' %}">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

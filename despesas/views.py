@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.views.generic import CreateView, DeleteView, ListView, TemplateView, UpdateView
 
 from cadastros.models import SubcategoriaDeSpesa
+from usuarios.permissions import ModuleAccessMixin, module_required
 
 from .filters import DespesaFilter
 from .forms import DespesaForm
@@ -21,10 +22,11 @@ from .services import (
 )
 
 
-class DespesaListView(LoginRequiredMixin, ListView):
+class DespesaListView(ModuleAccessMixin, LoginRequiredMixin, ListView):
     model = Despesa
     template_name = "despesas/list.html"
     paginate_by = 30
+    required_module = "despesas"
     allowed_ordering = {
         "descricao": "descricao",
         "subcategoria": "subcategoria__nome",
@@ -116,11 +118,12 @@ class DespesaListView(LoginRequiredMixin, ListView):
         return context
 
 
-class DespesaCreateView(LoginRequiredMixin, CreateView):
+class DespesaCreateView(ModuleAccessMixin, LoginRequiredMixin, CreateView):
     model = Despesa
     form_class = DespesaForm
     template_name = "despesas/form.html"
     success_url = reverse_lazy("despesas:list")
+    required_module = "despesas"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -149,11 +152,12 @@ class DespesaCreateView(LoginRequiredMixin, CreateView):
         return response
 
 
-class DespesaUpdateView(LoginRequiredMixin, UpdateView):
+class DespesaUpdateView(ModuleAccessMixin, LoginRequiredMixin, UpdateView):
     model = Despesa
     form_class = DespesaForm
     template_name = "despesas/form.html"
     success_url = reverse_lazy("despesas:list")
+    required_module = "despesas"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -183,10 +187,11 @@ class DespesaUpdateView(LoginRequiredMixin, UpdateView):
         return response
 
 
-class DespesaDeleteView(LoginRequiredMixin, DeleteView):
+class DespesaDeleteView(ModuleAccessMixin, LoginRequiredMixin, DeleteView):
     model = Despesa
     template_name = "confirm_delete.html"
     success_url = reverse_lazy("despesas:list")
+    required_module = "despesas"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -202,8 +207,9 @@ class DespesaDeleteView(LoginRequiredMixin, DeleteView):
         return super().post(request, *args, **kwargs)
 
 
-class DespesaResumoView(LoginRequiredMixin, TemplateView):
+class DespesaResumoView(ModuleAccessMixin, LoginRequiredMixin, TemplateView):
     template_name = "despesas/resumo.html"
+    required_module = "despesas"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -214,10 +220,12 @@ class DespesaResumoView(LoginRequiredMixin, TemplateView):
         context["resumo"] = expense_summary_by_category(ano, mes)
         context["ano"] = ano
         context["mes"] = mes
+        context["periodo"] = f"{ano:04d}-{mes:02d}"
         return context
 
 
 @login_required
+@module_required("despesas")
 def marcar_despesa_paga(request, pk):
     despesa = get_object_or_404(Despesa, pk=pk)
     if request.method == "POST":

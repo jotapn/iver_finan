@@ -6,16 +6,21 @@ from django.shortcuts import redirect
 from django.utils import timezone
 from django.views.generic import TemplateView, View
 
+from usuarios.permissions import ModuleAccessMixin
+
 from .services import annual_total, build_dre, export_dre_workbook
 
 
-class DREIndexView(LoginRequiredMixin, View):
+class DREIndexView(ModuleAccessMixin, LoginRequiredMixin, View):
+    required_module = "dre"
+
     def get(self, request, *args, **kwargs):
         return redirect("dre:annual", ano=timezone.localdate().year)
 
 
-class DREAnualView(LoginRequiredMixin, TemplateView):
+class DREAnualView(ModuleAccessMixin, LoginRequiredMixin, TemplateView):
     template_name = "dre/anual.html"
+    required_module = "dre"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -24,7 +29,9 @@ class DREAnualView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class DREExportView(LoginRequiredMixin, View):
+class DREExportView(ModuleAccessMixin, LoginRequiredMixin, View):
+    required_module = "dre"
+
     def get(self, request, *args, **kwargs):
         ano = self.kwargs["ano"]
         workbook = export_dre_workbook(build_dre(ano))

@@ -73,8 +73,7 @@ class LancamentoColaborador(models.Model):
     def recalculate(self):
         self.inss = (self.salario_bruto * Decimal("0.075")).quantize(Decimal("0.01"))
         self.salario_liquido = (self.salario_bruto - self.inss - self.vale_consumo).quantize(Decimal("0.01"))
-        self.adiantamento_valor = (self.salario_liquido * Decimal("0.40")).quantize(Decimal("0.01"))
-        self.saldo_final_valor = (self.salario_liquido - self.adiantamento_valor).quantize(Decimal("0.01"))
+        self.adiantamento_valor = (self.salario_bruto * Decimal("0.40")).quantize(Decimal("0.01"))
         if not self.adiantamento_data:
             self.adiantamento_data = date(self.periodo.ano, self.periodo.mes, 15)
         if not self.saldo_final_data:

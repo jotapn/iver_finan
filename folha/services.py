@@ -2,7 +2,7 @@ from calendar import monthrange
 from datetime import date
 from decimal import Decimal
 
-from django.db.models import Q, Sum
+from django.db.models import Q
 
 from cadastros.models import Colaborador
 from faturamento.services import monthly_summary
@@ -46,7 +46,3 @@ def sync_periodo(periodo: PeriodoFolha) -> PeriodoFolha:
         BeneficioColaborador.objects.get_or_create(periodo=periodo, colaborador=colaborador)
 
     return periodo
-
-
-def resumo_despesas_trabalhistas(periodo: PeriodoFolha):
-    return periodo.despesas_trabalhistas.values("tipo").annotate(total=Sum("valor")).order_by("tipo")

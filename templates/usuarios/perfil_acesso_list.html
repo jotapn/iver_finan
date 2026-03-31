@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block page_title %}Perfis{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="h6 mb-1">Perfis de acesso</h3>
+        <p class="text-muted mb-0">Defina quais modulos cada grupo de usuarios pode acessar no sistema.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" href="{% url 'usuarios:index' %}">Voltar</a>
+        <a class="btn btn-primary" href="{% url 'usuarios:access-profile-create' %}">Novo perfil</a>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Perfil</th>
+                    <th>Modulos liberados</th>
+                    <th>Usuarios vinculados</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for perfil in perfis_acesso %}
+                    <tr>
+                        <td>{{ perfil.nome }}</td>
+                        <td>
+                            <small class="text-muted">
+                                {% if perfil.ver_dashboard %}Dashboard {% endif %}
+                                {% if perfil.ver_cadastros %}Cadastros {% endif %}
+                                {% if perfil.ver_faturamento %}Faturamento {% endif %}
+                                {% if perfil.ver_despesas %}Despesas {% endif %}
+                                {% if perfil.ver_folha %}Folha {% endif %}
+                                {% if perfil.ver_dre %}DRE {% endif %}
+                                {% if perfil.ver_usuarios %}Usuarios {% endif %}
+                                {% if perfil.ver_admin %}Admin{% endif %}
+                            </small>
+                        </td>
+                        <td>{{ perfil.usuarios.count }}</td>
+                        <td class="text-end">
+                            <a class="btn btn-outline-primary btn-sm" href="{% url 'usuarios:access-profile-update' perfil.pk %}">Editar</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="4" class="text-center py-4">Nenhum perfil de acesso cadastrado.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

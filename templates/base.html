@@ -14,31 +14,53 @@
             <aside class="sidebar p-4 text-white">
                 <h1 class="h4 mb-4">IVER</h1>
                 <nav class="nav flex-column gap-2">
-                    <a class="nav-link text-white" href="{% url 'dashboard' %}">Dashboard</a>
-                    <a class="nav-link text-white" href="{% url 'faturamento:list' %}">Faturamento</a>
-                    <a class="nav-link text-white" href="{% url 'despesas:list' %}">Despesas</a>
-                    <a class="nav-link text-white" href="{% url 'folha:index' %}">Folha</a>
-                    <a class="nav-link text-white" href="{% url 'dre:index' %}">DRE</a>
-                    <div class="sidebar-group">
-                        <button
-                            class="nav-link text-white w-100 text-start d-flex justify-content-between align-items-center sidebar-toggle {% if '/cadastros/' in request.path %}active{% endif %}"
-                            type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#cadastrosMenu"
-                            aria-expanded="{% if '/cadastros/' in request.path %}true{% else %}false{% endif %}"
-                            aria-controls="cadastrosMenu"
-                        >
-                            <span>Cadastros</span>
-                            <span class="small">+</span>
-                        </button>
-                        <div class="collapse sidebar-submenu {% if '/cadastros/' in request.path %}show{% endif %}" id="cadastrosMenu">
-                            <a class="nav-link text-white submenu-link" href="{% url 'cadastros:index' %}">Visão geral</a>
-                            {% for slug, item in sidebar_cadastros.items %}
-                                <a class="nav-link text-white submenu-link" href="{% url 'cadastros:list' slug %}">{{ item.title }}</a>
-                            {% endfor %}
+                    {% if module_access.dashboard %}<a class="nav-link text-white" href="{% url 'dashboard' %}">Dashboard</a>{% endif %}
+                    {% if module_access.faturamento %}<a class="nav-link text-white" href="{% url 'faturamento:list' %}">Faturamento</a>{% endif %}
+                    {% if module_access.despesas %}<a class="nav-link text-white" href="{% url 'despesas:list' %}">Despesas</a>{% endif %}
+                    {% if module_access.folha %}<a class="nav-link text-white" href="{% url 'folha:index' %}">Folha</a>{% endif %}
+                    {% if module_access.dre %}<a class="nav-link text-white" href="{% url 'dre:index' %}">DRE</a>{% endif %}
+                    {% if module_access.cadastros %}
+                        <div class="sidebar-group">
+                            <button
+                                class="nav-link text-white w-100 text-start d-flex justify-content-between align-items-center sidebar-toggle {% if '/cadastros/' in request.path %}active{% endif %}"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#cadastrosMenu"
+                                aria-expanded="{% if '/cadastros/' in request.path %}true{% else %}false{% endif %}"
+                                aria-controls="cadastrosMenu"
+                            >
+                                <span>Cadastros</span>
+                                <span class="small">+</span>
+                            </button>
+                            <div class="collapse sidebar-submenu {% if '/cadastros/' in request.path %}show{% endif %}" id="cadastrosMenu">
+                                <a class="nav-link text-white submenu-link" href="{% url 'cadastros:index' %}">Visao geral</a>
+                                {% for slug, item in sidebar_cadastros.items %}
+                                    <a class="nav-link text-white submenu-link" href="{% url 'cadastros:list' slug %}">{{ item.title }}</a>
+                                {% endfor %}
+                            </div>
                         </div>
-                    </div>
-                    <a class="nav-link text-white" href="{% url 'admin:index' %}">Admin</a>
+                    {% endif %}
+                    {% if module_access.usuarios %}
+                        <div class="sidebar-group">
+                            <button
+                                class="nav-link text-white w-100 text-start d-flex justify-content-between align-items-center sidebar-toggle {% if '/usuarios/' in request.path %}active{% endif %}"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#configuracoesMenu"
+                                aria-expanded="{% if '/usuarios/' in request.path %}true{% else %}false{% endif %}"
+                                aria-controls="configuracoesMenu"
+                            >
+                                <span>Configuracoes</span>
+                                <span class="small">+</span>
+                            </button>
+                            <div class="collapse sidebar-submenu {% if '/usuarios/' in request.path %}show{% endif %}" id="configuracoesMenu">
+                                <a class="nav-link text-white submenu-link" href="{% url 'usuarios:index' %}">Visao geral</a>
+                                <a class="nav-link text-white submenu-link" href="{% url 'usuarios:list' %}">Usuarios</a>
+                                <a class="nav-link text-white submenu-link" href="{% url 'usuarios:access-profile-list' %}">Perfis</a>
+                            </div>
+                        </div>
+                    {% endif %}
+                    {% if module_access.admin %}<a class="nav-link text-white" href="{% url 'admin:index' %}">Admin</a>{% endif %}
                     <form method="post" action="{% url 'logout' %}">
                         {% csrf_token %}
                         <button class="btn btn-outline-light btn-sm mt-3" type="submit">Sair</button>

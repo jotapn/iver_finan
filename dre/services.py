@@ -7,40 +7,34 @@ from cadastros.models import CategoriaDeSpesa, SubcategoriaDeSpesa
 from despesas.models import Despesa
 from despesas.services import generate_recurring_expenses_until
 from faturamento.services import monthly_summary
-from folha.models import DespesaTrabalhistaMensal
 
 
-PESSOAL_TIPOS = [
-    ("PRO_LABORE", "Pro-labore"),
-    ("SALARIO_BRUTO", "Salário Bruto"),
-    ("INSS_EMPRESA", "INSS (empresa)"),
-    ("FOLGAS_DOBRAS", "Folgas e Dobras"),
-    ("HORAS_EXTRAS", "Horas Extras"),
-    ("FGTS", "FGTS"),
-    ("EXAMES", "Exames Admissionais e Demissionais"),
-    ("UNIFORME", "Uniforme"),
-    ("CONVENIO_SEGURO", "Convênios e Seguros de Vida"),
-    ("SEGURO_VIDA", "Seguro de Vida Coletivo"),
-    ("13_SALARIO_50", "13° Salário (50%)"),
-    ("PROVISAO_13", "Provisão 13°"),
-    ("FERIAS_PROVISAO", "Férias (Provisão)"),
-    ("RESCISAO", "Rescisão Trabalhista"),
-    ("FGTS_RESCISAO", "FGTS - Rescisão"),
+PESSOAL_LABELS = [
+    "Pro-labore",
+    "Salário Bruto",
+    "INSS Empresa",
+    "Folgas e Dobras",
+    "Horas Extras",
+    "FGTS",
+    "Exames Admissionais e Demissionais",
+    "Uniforme",
+    "Convênios e Seguros de Vida",
+    "Seguro de Vida Coletivo",
+    "13º Salário (50%)",
+    "Provisão 13º",
+    "Férias (Provisão)",
+    "Rescisão Trabalhista",
+    "FGTS - Rescisão",
 ]
 
 
-def _total_despesa_subcategoria(subcategoria: SubcategoriaDeSpesa, year: int, month: int) -> Decimal:
+def _total_despesa_subcategoria(subcategoria: SubcategoriaDeSpesa | None, year: int, month: int) -> Decimal:
+    if subcategoria is None:
+        return Decimal("0.00")
     return (
         Despesa.objects.filter(subcategoria=subcategoria, ano_referencia=year, mes_referencia=month).aggregate(total=Sum("valor"))[
             "total"
         ]
-        or Decimal("0.00")
-    )
-
-
-def _total_pessoal(tipo: str, year: int, month: int) -> Decimal:
-    return (
-        DespesaTrabalhistaMensal.objects.filter(periodo__ano=year, periodo__mes=month, tipo=tipo).aggregate(total=Sum("valor"))["total"]
         or Decimal("0.00")
     )
 
@@ -51,14 +45,6 @@ def build_dre(year: int) -> dict:
     receita_bruta = {month: monthly_summary(year, month)["total_bruto"] for month in months}
     taxa_servico = {month: (receita_bruta[month] * Decimal("0.10")).quantize(Decimal("0.01")) for month in months}
     receita_liquida = {month: (receita_bruta[month] - taxa_servico[month]).quantize(Decimal("0.01")) for month in months}
-
-    pessoal_lines = []
-    total_pessoal = {}
-    for tipo, label in PESSOAL_TIPOS:
-        values = {month: _total_pessoal(tipo, year, month) for month in months}
-        pessoal_lines.append({"label": label, "values": values, "total": sum(values.values(), start=Decimal("0.00"))})
-    for month in months:
-        total_pessoal[month] = sum((line["values"][month] for line in pessoal_lines), start=Decimal("0.00"))
 
     def category_lines(category_name: str):
         category = CategoriaDeSpesa.objects.filter(nome=category_name).first()
@@ -72,6 +58,16 @@ def build_dre(year: int) -> dict:
                 totals[month] += values[month]
             lines.append({"label": subcategoria.nome, "values": values, "total": sum(values.values(), start=Decimal("0.00"))})
         return lines, totals
+
+    pessoal_category = CategoriaDeSpesa.objects.filter(nome="Despesas com colaboradores").first()
+    pessoal_lines = []
+    total_pessoal = {month: Decimal("0.00") for month in months}
+    for label in PESSOAL_LABELS:
+        subcategoria = pessoal_category.subcategorias.filter(nome=label).first() if pessoal_category else None
+        values = {month: _total_despesa_subcategoria(subcategoria, year, month) for month in months}
+        for month in months:
+            total_pessoal[month] += values[month]
+        pessoal_lines.append({"label": label, "values": values, "total": sum(values.values(), start=Decimal("0.00"))})
 
     cmv_lines, total_cmv = category_lines("Custo de Mercadoria")
     operacionais_lines, total_operacionais = category_lines("Despesas Operacionais")

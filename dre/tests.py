@@ -6,7 +6,6 @@ from django.test import TestCase
 from cadastros.models import CategoriaDeSpesa, SubcategoriaDeSpesa
 from despesas.models import Despesa
 from faturamento.models import RegistroFaturamento
-from folha.models import DespesaTrabalhistaMensal, PeriodoFolha
 
 from .services import annual_total, build_dre
 
@@ -34,8 +33,16 @@ class DRETests(TestCase):
             mes_referencia=1,
             ano_referencia=2025,
         )
-        periodo = PeriodoFolha.objects.create(mes=1, ano=2025)
-        DespesaTrabalhistaMensal.objects.create(periodo=periodo, tipo="FGTS", valor=50)
+        categoria_pessoal = CategoriaDeSpesa.objects.create(nome="Despesas com colaboradores")
+        subcategoria_pessoal = SubcategoriaDeSpesa.objects.create(nome="FGTS", categoria=categoria_pessoal)
+        Despesa.objects.create(
+            descricao="FGTS janeiro",
+            categoria=categoria_pessoal,
+            subcategoria=subcategoria_pessoal,
+            valor=50,
+            mes_referencia=1,
+            ano_referencia=2025,
+        )
 
         dre = build_dre(2025)
         self.assertEqual(dre["receita_bruta"][1], Decimal("1000"))

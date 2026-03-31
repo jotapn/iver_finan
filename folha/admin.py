@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import BeneficioColaborador, DespesaTrabalhistaMensal, LancamentoColaborador, PeriodoFolha
+from .models import BeneficioColaborador, LancamentoColaborador, PeriodoFolha
 
 
 @admin.register(PeriodoFolha)
@@ -22,12 +22,3 @@ class BeneficioColaboradorAdmin(admin.ModelAdmin):
     list_display = ("colaborador", "periodo", "vale_transporte", "ajuda_custo", "pago")
     list_filter = ("periodo__ano", "periodo__mes", "pago")
     search_fields = ("colaborador__nome",)
-
-
-@admin.register(DespesaTrabalhistaMensal)
-class DespesaTrabalhistaMensalAdmin(admin.ModelAdmin):
-    list_display = ("periodo", "tipo", "valor", "pago")
-    list_filter = ("periodo__ano", "periodo__mes", "tipo", "pago")
-    search_fields = ("tipo",)
-
-# Register your models here.
