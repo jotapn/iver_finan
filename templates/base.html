@@ -40,27 +40,31 @@
                             </div>
                         </div>
                     {% endif %}
-                    {% if module_access.usuarios %}
+                    {% if module_access.usuarios or module_access.admin %}
                         <div class="sidebar-group">
                             <button
-                                class="nav-link text-white w-100 text-start d-flex justify-content-between align-items-center sidebar-toggle {% if '/usuarios/' in request.path %}active{% endif %}"
+                                class="nav-link text-white w-100 text-start d-flex justify-content-between align-items-center sidebar-toggle {% if '/usuarios/' in request.path or '/admin/' in request.path %}active{% endif %}"
                                 type="button"
                                 data-bs-toggle="collapse"
                                 data-bs-target="#configuracoesMenu"
-                                aria-expanded="{% if '/usuarios/' in request.path %}true{% else %}false{% endif %}"
+                                aria-expanded="{% if '/usuarios/' in request.path or '/admin/' in request.path %}true{% else %}false{% endif %}"
                                 aria-controls="configuracoesMenu"
                             >
                                 <span>Configuracoes</span>
                                 <span class="small">+</span>
                             </button>
-                            <div class="collapse sidebar-submenu {% if '/usuarios/' in request.path %}show{% endif %}" id="configuracoesMenu">
-                                <a class="nav-link text-white submenu-link" href="{% url 'usuarios:index' %}">Visao geral</a>
-                                <a class="nav-link text-white submenu-link" href="{% url 'usuarios:list' %}">Usuarios</a>
-                                <a class="nav-link text-white submenu-link" href="{% url 'usuarios:access-profile-list' %}">Perfis</a>
+                            <div class="collapse sidebar-submenu {% if '/usuarios/' in request.path or '/admin/' in request.path %}show{% endif %}" id="configuracoesMenu">
+                                {% if module_access.usuarios %}
+                                    <a class="nav-link text-white submenu-link" href="{% url 'usuarios:index' %}">Visao geral</a>
+                                    <a class="nav-link text-white submenu-link" href="{% url 'usuarios:list' %}">Usuarios</a>
+                                    <a class="nav-link text-white submenu-link" href="{% url 'usuarios:access-profile-list' %}">Perfis</a>
+                                {% endif %}
+                                {% if module_access.admin %}
+                                    <a class="nav-link text-white submenu-link" href="{% url 'admin:index' %}">Admin</a>
+                                {% endif %}
                             </div>
                         </div>
                     {% endif %}
-                    {% if module_access.admin %}<a class="nav-link text-white" href="{% url 'admin:index' %}">Admin</a>{% endif %}
                     <form method="post" action="{% url 'logout' %}">
                         {% csrf_token %}
                         <button class="btn btn-outline-light btn-sm mt-3" type="submit">Sair</button>

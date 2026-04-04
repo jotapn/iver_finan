@@ -1,19 +1,106 @@
 {% extends "base.html" %}
-{% load crispy_forms_tags %}
+{% load crispy_forms_tags finance_extras %}
 
-{% block page_title %}Lançamento de Faturamento{% endblock %}
+{% block page_title %}Lancamento de Faturamento{% endblock %}
 
 {% block content %}
 <div class="card shadow-sm border-0">
     <div class="card-body">
         <form method="post">
             {% csrf_token %}
-            {{ form|crispy }}
-            <div class="d-flex gap-2">
+
+            <div class="row g-3">
+                <div class="col-md-4">{{ form.data|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.valor_dinheiro|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.valor_pix|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.valor_credito|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.valor_debito|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.valor_fiado|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.valor_vale|as_crispy_field }}</div>
+                <div class="col-12">
+                    <div class="form-text mb-2">Categorias do faturamento diario. Esses valores classificam a origem da receita e a soma deles nao pode passar do total do dia.</div>
+                </div>
+                <div class="col-md-4">{{ form.faturamento_bar|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.faturamento_cozinha|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.faturamento_produtos|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.faturamento_outros|as_crispy_field }}</div>
+                <div class="col-12">{{ form.observacao|as_crispy_field }}</div>
+
+                <div class="col-md-4">
+                    {{ form.quantidade_pessoas|as_crispy_field }}
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Ticket medio do dia</label>
+                    <div class="form-control bg-light" id="ticketMedioDia">R$ 0,00</div>
+                    <div class="form-text">Calculado apenas quando a quantidade de pessoas for preenchida.</div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
                 <button class="btn btn-primary" type="submit">Salvar</button>
                 <a class="btn btn-outline-secondary" href="{% url 'faturamento:list' %}">Cancelar</a>
             </div>
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const moneyFields = [
+        '{{ form.valor_dinheiro.id_for_label }}',
+        '{{ form.valor_pix.id_for_label }}',
+        '{{ form.valor_credito.id_for_label }}',
+        '{{ form.valor_debito.id_for_label }}',
+        '{{ form.valor_fiado.id_for_label }}',
+        '{{ form.valor_vale.id_for_label }}'
+    ].map((id) => document.getElementById(id)).filter(Boolean);
+
+    const pessoasField = document.getElementById('{{ form.quantidade_pessoas.id_for_label }}');
+    const ticketField = document.getElementById('ticketMedioDia');
+    const currencyFormatter = new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+    });
+
+    function parseDecimal(value) {
+        if (!value) return 0;
+        const raw = String(value).trim();
+        let normalized = raw;
+
+        if (raw.includes(',') && raw.includes('.')) {
+            if (raw.lastIndexOf(',') > raw.lastIndexOf('.')) {
+                normalized = raw.replace(/\./g, '').replace(',', '.');
+            } else {
+                normalized = raw.replace(/,/g, '');
+            }
+        } else if (raw.includes(',')) {
+            normalized = raw.replace(',', '.');
+        }
+
+        const parsed = Number(normalized);
+        return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function updateTicketMedio() {
+        const quantidadePessoas = Number(pessoasField?.value || 0);
+        const totalDia = moneyFields.reduce((sum, field) => sum + parseDecimal(field.value), 0);
+
+        if (!quantidadePessoas || quantidadePessoas < 1) {
+            ticketField.textContent = currencyFormatter.format(0);
+            return;
+        }
+
+        ticketField.textContent = currencyFormatter.format(totalDia / quantidadePessoas);
+    }
+
+    moneyFields.forEach((field) => field.addEventListener('input', updateTicketMedio));
+    if (pessoasField) {
+        pessoasField.addEventListener('input', updateTicketMedio);
+    }
+
+    updateTicketMedio();
+})();
+</script>
 {% endblock %}

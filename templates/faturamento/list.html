@@ -10,16 +10,15 @@
         <div class="col-auto">{{ filter.form.mes|as_crispy_field }}</div>
         <div class="col-auto align-self-end"><button class="btn btn-outline-secondary">Filtrar</button></div>
     </form>
-    <a class="btn btn-primary" href="{% url 'faturamento:create' %}">Novo lançamento</a>
+    <a class="btn btn-primary" href="{% url 'faturamento:create' %}">Novo lancamento</a>
 </div>
 
 {% if resumo %}
 <div class="row g-3 mb-4">
     <div class="col-md-4 col-xl-2"><div class="card shadow-sm border-0"><div class="card-body"><small>Total bruto</small><div class="fw-semibold">{{ resumo.total_bruto|brl }}</div></div></div></div>
-    <div class="col-md-4 col-xl-2"><div class="card shadow-sm border-0"><div class="card-body"><small>Taxa serviço</small><div class="fw-semibold">{{ resumo.taxa_servico|brl }}</div></div></div></div>
-    <div class="col-md-4 col-xl-2"><div class="card shadow-sm border-0"><div class="card-body"><small>Total líquido</small><div class="fw-semibold">{{ resumo.total_liquido|brl }}</div></div></div></div>
     <div class="col-md-4 col-xl-2"><div class="card shadow-sm border-0"><div class="card-body"><small>Dias</small><div class="fw-semibold">{{ resumo.dias_trabalhados }}</div></div></div></div>
-    <div class="col-md-4 col-xl-2"><div class="card shadow-sm border-0"><div class="card-body"><small>Média/dia</small><div class="fw-semibold">{{ resumo.media_dia|brl }}</div></div></div></div>
+    <div class="col-md-4 col-xl-2"><div class="card shadow-sm border-0"><div class="card-body"><small>Pessoas</small><div class="fw-semibold">{{ resumo.total_pessoas }}</div></div></div></div>
+    <div class="col-md-4 col-xl-2"><div class="card shadow-sm border-0"><div class="card-body"><small>Ticket medio diario</small><div class="fw-semibold">{{ resumo.ticket_medio_diario|brl }}</div></div></div></div>
 </div>
 {% endif %}
 
@@ -30,8 +29,17 @@
                 <tr>
                     <th>Data</th>
                     <th>Total</th>
+                    <th>Dinheiro</th>
+                    <th>PIX</th>
+                    <th>Credito</th>
+                    <th>Debito</th>
+                    <th>Fiado</th>
+                    <th>Vale</th>
+                    <th>Pessoas</th>
                     <th>Bar</th>
                     <th>Cozinha</th>
+                    <th>Produtos</th>
+                    <th>Outros</th>
                     <th></th>
                 </tr>
             </thead>
@@ -40,12 +48,21 @@
                     <tr>
                         <td>{{ object.data|date:"d/m/Y" }}</td>
                         <td>{{ object.total|brl }}</td>
+                        <td>{{ object.valor_dinheiro|brl }}</td>
+                        <td>{{ object.valor_pix|brl }}</td>
+                        <td>{{ object.valor_credito|brl }}</td>
+                        <td>{{ object.valor_debito|brl }}</td>
+                        <td>{{ object.valor_fiado|brl }}</td>
+                        <td>{{ object.valor_vale|brl }}</td>
+                        <td>{{ object.quantidade_pessoas|default:"-" }}</td>
                         <td>{{ object.faturamento_bar|brl }}</td>
                         <td>{{ object.faturamento_cozinha|brl }}</td>
+                        <td>{{ object.faturamento_produtos|brl }}</td>
+                        <td>{{ object.faturamento_outros|brl }}</td>
                         <td class="text-end"><a class="btn btn-outline-primary btn-sm" href="{% url 'faturamento:update' object.pk %}">Editar</a></td>
                     </tr>
                 {% empty %}
-                    <tr><td colspan="5" class="text-center py-4">Nenhum lançamento encontrado.</td></tr>
+                    <tr><td colspan="14" class="text-center py-4">Nenhum lancamento encontrado.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

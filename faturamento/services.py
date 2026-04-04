@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date
 from decimal import Decimal
 
-from django.db.models import DecimalField, ExpressionWrapper, F, Sum, Value
+from django.db.models import DecimalField, ExpressionWrapper, F, IntegerField, Sum, Value
 from django.db.models.functions import Coalesce
 
 from .models import RegistroFaturamento
@@ -42,22 +42,29 @@ def _zero(value):
 
 def monthly_summary(year: int, month: int) -> dict:
     queryset = RegistroFaturamento.objects.filter(data__year=year, data__month=month)
+    queryset_com_pessoas = queryset.filter(quantidade_pessoas__isnull=False)
     aggregates = queryset.aggregate(
         total_bruto=Coalesce(Sum(total_expression()), Value(Decimal("0.00"))),
         total_bar=Coalesce(Sum("faturamento_bar"), Value(Decimal("0.00"))),
         total_cozinha=Coalesce(Sum("faturamento_cozinha"), Value(Decimal("0.00"))),
     )
+    aggregates_pessoas = queryset_com_pessoas.aggregate(
+        total_bruto_com_pessoas=Coalesce(Sum(total_expression()), Value(Decimal("0.00"))),
+        total_pessoas=Coalesce(Sum("quantidade_pessoas"), Value(0), output_field=IntegerField()),
+    )
     total_bruto = _zero(aggregates["total_bruto"])
-    taxa_servico = (total_bruto * Decimal("0.10")).quantize(Decimal("0.01"))
-    total_liquido = (total_bruto * Decimal("0.90")).quantize(Decimal("0.01"))
     dias_trabalhados = queryset.count()
     media_dia = (total_bruto / dias_trabalhados).quantize(Decimal("0.01")) if dias_trabalhados else Decimal("0.00")
+    total_pessoas = aggregates_pessoas["total_pessoas"] or 0
+    total_bruto_com_pessoas = _zero(aggregates_pessoas["total_bruto_com_pessoas"])
+    ticket_medio_diario = (total_bruto_com_pessoas / total_pessoas).quantize(Decimal("0.01")) if total_pessoas else Decimal("0.00")
     return {
         "total_bruto": total_bruto,
-        "taxa_servico": taxa_servico,
-        "total_liquido": total_liquido,
         "dias_trabalhados": dias_trabalhados,
         "media_dia": media_dia,
+        "total_pessoas": total_pessoas,
+        "total_bruto_com_pessoas": total_bruto_com_pessoas,
+        "ticket_medio_diario": ticket_medio_diario,
         "total_bar": _zero(aggregates["total_bar"]),
         "total_cozinha": _zero(aggregates["total_cozinha"]),
     }

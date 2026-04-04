@@ -5,6 +5,7 @@ from django.db import models
 
 class RegistroFaturamento(models.Model):
     data = models.DateField("data", unique=True)
+    quantidade_pessoas = models.PositiveIntegerField("quantidade de pessoas", null=True, blank=True)
     valor_dinheiro = models.DecimalField("valor em dinheiro", max_digits=10, decimal_places=2, default=0)
     valor_pix = models.DecimalField("valor em pix", max_digits=10, decimal_places=2, default=0)
     valor_credito = models.DecimalField("valor em crédito", max_digits=10, decimal_places=2, default=0)
@@ -13,6 +14,8 @@ class RegistroFaturamento(models.Model):
     valor_vale = models.DecimalField("valor em vale", max_digits=10, decimal_places=2, default=0)
     faturamento_bar = models.DecimalField("faturamento bar", max_digits=10, decimal_places=2, default=0)
     faturamento_cozinha = models.DecimalField("faturamento cozinha", max_digits=10, decimal_places=2, default=0)
+    faturamento_produtos = models.DecimalField("faturamento produtos", max_digits=10, decimal_places=2, default=0)
+    faturamento_outros = models.DecimalField("faturamento outros", max_digits=10, decimal_places=2, default=0)
     observacao = models.TextField("observação", blank=True)
 
     class Meta:
