@@ -58,6 +58,11 @@ def monthly_summary(year: int, month: int) -> dict:
     total_pessoas = aggregates_pessoas["total_pessoas"] or 0
     total_bruto_com_pessoas = _zero(aggregates_pessoas["total_bruto_com_pessoas"])
     ticket_medio_diario = (total_bruto_com_pessoas / total_pessoas).quantize(Decimal("0.01")) if total_pessoas else Decimal("0.00")
+
+    # Regra de negócio: faturamento líquido é 90% do bruto
+    total_liquido = (total_bruto * Decimal("0.90")).quantize(Decimal("0.01"))
+    taxa_servico = total_bruto - total_liquido
+
     return {
         "total_bruto": total_bruto,
         "dias_trabalhados": dias_trabalhados,
@@ -67,6 +72,8 @@ def monthly_summary(year: int, month: int) -> dict:
         "ticket_medio_diario": ticket_medio_diario,
         "total_bar": _zero(aggregates["total_bar"]),
         "total_cozinha": _zero(aggregates["total_cozinha"]),
+        "total_liquido": total_liquido,
+        "taxa_servico": taxa_servico,
     }
 
 

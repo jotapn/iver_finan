@@ -118,4 +118,34 @@ class FolhaServiceTests(TestCase):
             Despesa.objects.filter(origem=Despesa.Origem.FOLHA, folha_tipo="ADIANTAMENTO", ano_referencia=2025, mes_referencia=4).exists()
         )
 
+    def test_sync_period_updates_paid_expense_when_salary_changes(self):
+        setor = Setor.objects.create(nome="BAR")
+        cargo = Cargo.objects.create(nome="Bartender", setor=setor, comissao_percentual=Decimal("0.0000"))
+        colaborador = Colaborador.objects.create(
+            nome="Rita",
+            cargo=cargo,
+            salario_bruto=Decimal("1000.00"),
+            data_admissao=date(2025, 1, 1),
+        )
+        periodo = PeriodoFolha.objects.create(mes=5, ano=2025)
+        sync_periodo(periodo)
+
+        lancamento = periodo.lancamentos.get(colaborador=colaborador)
+        lancamento.adiantamento_pago = True
+        lancamento.adiantamento_data = date(2025, 5, 15)
+        lancamento.save(update_fields=["adiantamento_pago", "adiantamento_data"])
+        sync_periodo_payment_expenses(periodo)
+
+        colaborador.salario_bruto = Decimal("2000.00")
+        colaborador.save(update_fields=["salario_bruto"])
+        sync_periodo(periodo)
+
+        despesa = Despesa.objects.get(
+            origem=Despesa.Origem.FOLHA,
+            folha_tipo="ADIANTAMENTO",
+            ano_referencia=2025,
+            mes_referencia=5,
+        )
+        self.assertEqual(despesa.valor, Decimal("800.00"))
+
 # Create your tests here.

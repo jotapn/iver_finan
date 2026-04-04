@@ -43,6 +43,7 @@ def sync_periodo(periodo: PeriodoFolha) -> PeriodoFolha:
         lancamento.save()
         BeneficioColaborador.objects.get_or_create(periodo=periodo, colaborador=colaborador)
 
+    sync_periodo_payment_expenses(periodo)
     return periodo
 
 

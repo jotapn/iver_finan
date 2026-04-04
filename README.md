@@ -290,6 +290,45 @@ Validar a configuração:
 python manage.py check
 ```
 
+## Deploy com Docker
+
+### 1. Preparar variáveis
+
+Use `.env.example` como base e ajuste pelo menos:
+
+- `DJANGO_SECRET_KEY`
+- `DJANGO_DEBUG=False`
+- `DJANGO_ALLOWED_HOSTS`
+- `DJANGO_CSRF_TRUSTED_ORIGINS`
+- credenciais de `POSTGRES_*`
+
+### 2. Subir os containers
+
+```bash
+docker compose up -d --build
+```
+
+### 3. Criar usuário administrador
+
+```bash
+docker compose exec web python manage.py createsuperuser
+```
+
+### 4. Publicação na VPS/CPS
+
+- exponha apenas a aplicação web para fora do servidor
+- mantenha o PostgreSQL sem porta pública
+- coloque Nginx ou Caddy na frente do container `web`
+- encaminhe HTTPS para a porta `8000`
+- use o endpoint `/healthz/` para monitoramento
+
+### 5. Validar produção
+
+```bash
+docker compose logs -f web
+docker compose ps
+```
+
 ## Arquivos Importantes
 
 - `config/settings.py`

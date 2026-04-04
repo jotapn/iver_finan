@@ -42,9 +42,11 @@ def _total_despesa_subcategoria(subcategoria: SubcategoriaDeSpesa | None, year: 
 def build_dre(year: int) -> dict:
     generate_recurring_expenses_until(year, 12)
     months = list(range(1, 13))
-    receita_bruta = {month: monthly_summary(year, month)["total_bruto"] for month in months}
-    taxa_servico = {month: (receita_bruta[month] * Decimal("0.10")).quantize(Decimal("0.01")) for month in months}
-    receita_liquida = {month: (receita_bruta[month] - taxa_servico[month]).quantize(Decimal("0.01")) for month in months}
+
+    summaries = {month: monthly_summary(year, month) for month in months}
+    receita_bruta = {month: summaries[month]["total_bruto"] for month in months}
+    taxa_servico = {month: summaries[month]["taxa_servico"] for month in months}
+    receita_liquida = {month: summaries[month]["total_liquido"] for month in months}
 
     def category_lines(category_name: str):
         category = CategoriaDeSpesa.objects.filter(nome=category_name).first()
