@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load finance_extras %}
 
-{% block page_title %}Histórico do Colaborador{% endblock %}
+{% block page_title %}Historico do Colaborador{% endblock %}
 
 {% block content %}
 <div class="mb-3"><a class="btn btn-outline-secondary btn-sm" href="javascript:history.back()">Voltar</a></div>
@@ -10,10 +10,11 @@
         <table class="table table-hover mb-0">
             <thead>
                 <tr>
-                    <th>Período</th>
-                    <th>Salário Bruto</th>
-                    <th>Salário Líquido</th>
-                    <th>Total Recebido</th>
+                    <th>Periodo</th>
+                    <th>Salario Bruto</th>
+                    <th>Consumo</th>
+                    <th>Saldo Final</th>
+                    <th>Total do Mes</th>
                 </tr>
             </thead>
             <tbody>
@@ -21,11 +22,12 @@
                     <tr>
                         <td>{{ item.periodo }}</td>
                         <td>{{ item.salario_bruto|brl }}</td>
-                        <td>{{ item.salario_liquido|brl }}</td>
+                        <td>{{ item.consumo_colaborador|brl }}</td>
+                        <td>{{ item.saldo_final_valor|brl }}</td>
                         <td>{{ item.total_recebido|brl }}</td>
                     </tr>
                 {% empty %}
-                    <tr><td colspan="4" class="text-center py-4">Sem histórico disponível.</td></tr>
+                    <tr><td colspan="5" class="text-center py-4">Sem historico disponivel.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
