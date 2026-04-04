@@ -10,7 +10,7 @@ from usuarios.permissions import ModuleAccessMixin, module_required
 
 from .forms import BeneficioColaboradorForm, LancamentoColaboradorForm, PeriodoFolhaForm
 from .models import BeneficioColaborador, LancamentoColaborador, PeriodoFolha
-from .services import sync_periodo
+from .services import sync_periodo, sync_periodo_payment_expenses
 
 
 class PeriodoFolhaListView(ModuleAccessMixin, LoginRequiredMixin, ListView):
@@ -20,7 +20,8 @@ class PeriodoFolhaListView(ModuleAccessMixin, LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["form"] = PeriodoFolhaForm()
+        hoje = timezone.localdate()
+        context["form"] = PeriodoFolhaForm(initial={"mes": hoje.month, "ano": hoje.year})
         return context
 
 
@@ -51,10 +52,13 @@ class PeriodoFolhaDetailView(ModuleAccessMixin, LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         periodo = self.object
         lancamentos = list(periodo.lancamentos.select_related("colaborador", "colaborador__cargo", "colaborador__cargo__setor"))
+        beneficios = list(periodo.beneficios.select_related("colaborador"))
+        beneficios_por_colaborador = {beneficio.colaborador_id: beneficio for beneficio in beneficios}
         for lancamento in lancamentos:
             lancamento.inline_form = LancamentoColaboradorForm(instance=lancamento, prefix=f"lanc-{lancamento.pk}")
+            lancamento.beneficio = beneficios_por_colaborador.get(lancamento.colaborador_id)
         context["lancamentos"] = lancamentos
-        context["beneficios"] = periodo.beneficios.select_related("colaborador")
+        context["beneficios"] = beneficios
         return context
 
 
@@ -72,6 +76,11 @@ class LancamentoColaboradorUpdateView(ModuleAccessMixin, LoginRequiredMixin, Upd
 
     def get_success_url(self):
         return reverse("folha:detail", kwargs={"ano": self.object.periodo.ano, "mes": self.object.periodo.mes})
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        sync_periodo_payment_expenses(self.object.periodo)
+        return response
 
 
 class ColaboradorHistoricoView(ModuleAccessMixin, LoginRequiredMixin, ListView):
@@ -107,7 +116,9 @@ class BeneficioCreateView(PeriodoFormMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.periodo = self.periodo
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        sync_periodo_payment_expenses(self.periodo)
+        return response
 
 
 @login_required
@@ -131,6 +142,7 @@ def marcar_lancamento_pago(request, pk, campo):
             setattr(lancamento, pago_field, True)
             setattr(lancamento, data_field, timezone.localdate())
         lancamento.save(update_fields=[pago_field, data_field])
+        sync_periodo_payment_expenses(lancamento.periodo)
     return redirect("folha:detail", ano=lancamento.periodo.ano, mes=lancamento.periodo.mes)
 
 
@@ -146,6 +158,7 @@ def marcar_beneficio_pago(request, pk):
             beneficio.pago = True
             beneficio.data_pagamento = timezone.localdate()
         beneficio.save(update_fields=["pago", "data_pagamento"])
+        sync_periodo_payment_expenses(beneficio.periodo)
     return redirect("folha:detail", ano=beneficio.periodo.ano, mes=beneficio.periodo.mes)
 
 # Create your views here.

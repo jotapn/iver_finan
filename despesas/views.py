@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import F
@@ -159,6 +160,13 @@ class DespesaUpdateView(ModuleAccessMixin, LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy("despesas:list")
     required_module = "despesas"
 
+    def dispatch(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.object.origem == Despesa.Origem.FOLHA:
+            messages.warning(request, "Despesas geradas pela folha nao podem ser editadas manualmente.")
+            return redirect("despesas:list")
+        return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["subcategory_options"] = {
@@ -192,6 +200,13 @@ class DespesaDeleteView(ModuleAccessMixin, LoginRequiredMixin, DeleteView):
     template_name = "confirm_delete.html"
     success_url = reverse_lazy("despesas:list")
     required_module = "despesas"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.object.origem == Despesa.Origem.FOLHA:
+            messages.warning(request, "Despesas geradas pela folha nao podem ser excluidas manualmente.")
+            return redirect("despesas:list")
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -228,6 +243,9 @@ class DespesaResumoView(ModuleAccessMixin, LoginRequiredMixin, TemplateView):
 @module_required("despesas")
 def marcar_despesa_paga(request, pk):
     despesa = get_object_or_404(Despesa, pk=pk)
+    if despesa.origem == Despesa.Origem.FOLHA:
+        messages.warning(request, "Pagamentos gerados pela folha devem ser controlados na propria folha.")
+        return redirect("despesas:list")
     if request.method == "POST":
         despesa.pago = True
         despesa.data_pagamento = timezone.localdate()

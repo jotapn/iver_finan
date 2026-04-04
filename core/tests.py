@@ -7,6 +7,7 @@ from django.urls import reverse
 from cadastros.models import Banco, CategoriaDeSpesa, FormaPagamento, Setor, SubcategoriaDeSpesa
 from despesas.models import Despesa
 from faturamento.models import RegistroFaturamento
+from .services import get_dashboard_context
 
 
 class DashboardViewTests(TestCase):
@@ -48,5 +49,11 @@ class DashboardViewTests(TestCase):
         self.client.login(username="admin", password="123456")
         response = self.client.get(reverse("dashboard"))
         self.assertContains(response, "Painel Financeiro")
+
+    def test_dashboard_uses_net_revenue_for_balance(self):
+        context = get_dashboard_context()
+        self.assertEqual(context["resumo_mes"]["faturamento_bruto"], 150)
+        self.assertEqual(context["resumo_mes"]["despesas"], 40)
+        self.assertEqual(context["resumo_mes"]["saldo"], 95)
 
 # Create your tests here.

@@ -155,16 +155,23 @@
                                 <td>{{ object.data_vencimento|date:"d/m/Y"|default:"-" }}</td>
                                 <td>{{ object.data_pagamento|date:"d/m/Y"|default:"-" }}</td>
                                 <td>{{ object.valor|brl }}</td>
-                                <td>{% if object.pago %}<span class="badge text-bg-success">Pago</span>{% else %}<span class="badge text-bg-warning">Pendente</span>{% endif %}</td>
+                                <td>
+                                    {% if object.pago %}<span class="badge text-bg-success">Pago</span>{% else %}<span class="badge text-bg-warning">Pendente</span>{% endif %}
+                                    {% if object.origem == "FOLHA" %}
+                                        <span class="badge text-bg-secondary">Folha</span>
+                                    {% endif %}
+                                </td>
                                 <td class="text-end">
-                                    {% if not object.pago %}
+                                    {% if not object.pago and object.origem != "FOLHA" %}
                                         <form method="post" action="{% url 'despesas:mark-paid' object.pk %}" class="d-inline">
                                             {% csrf_token %}
                                             <button class="btn btn-outline-success btn-sm">Marcar pago</button>
                                         </form>
                                     {% endif %}
-                                    <a class="btn btn-outline-primary btn-sm" href="{% url 'despesas:update' object.pk %}">Editar</a>
-                                    <a class="btn btn-outline-danger btn-sm" href="{% url 'despesas:delete' object.pk %}">Excluir</a>
+                                    {% if object.origem != "FOLHA" %}
+                                        <a class="btn btn-outline-primary btn-sm" href="{% url 'despesas:update' object.pk %}">Editar</a>
+                                        <a class="btn btn-outline-danger btn-sm" href="{% url 'despesas:delete' object.pk %}">Excluir</a>
+                                    {% endif %}
                                 </td>
                             </tr>
                         {% empty %}

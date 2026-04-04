@@ -3,6 +3,22 @@ from django import forms
 from .models import BeneficioColaborador, LancamentoColaborador, PeriodoFolha
 
 
+MONTH_CHOICES = [
+    (1, "Janeiro"),
+    (2, "Fevereiro"),
+    (3, "Marco"),
+    (4, "Abril"),
+    (5, "Maio"),
+    (6, "Junho"),
+    (7, "Julho"),
+    (8, "Agosto"),
+    (9, "Setembro"),
+    (10, "Outubro"),
+    (11, "Novembro"),
+    (12, "Dezembro"),
+]
+
+
 class DateInput(forms.DateInput):
     input_type = "date"
 
@@ -12,6 +28,9 @@ class DateInput(forms.DateInput):
 
 
 class PeriodoFolhaForm(forms.ModelForm):
+    mes = forms.TypedChoiceField(choices=MONTH_CHOICES, coerce=int, label="Mes")
+    ano = forms.IntegerField(label="Ano", min_value=2000)
+
     class Meta:
         model = PeriodoFolha
         fields = ["mes", "ano"]
@@ -24,17 +43,15 @@ class LancamentoColaboradorForm(forms.ModelForm):
             css_class = "form-control"
             existing = field.widget.attrs.get("class", "")
             field.widget.attrs["class"] = f"{existing} {css_class}".strip()
-        for field_name in ["vale_consumo", "adicional_noturno", "dsr", "saldo_final_valor", "produtividade_1_valor", "produtividade_2_valor"]:
+        for field_name in ["consumo_colaborador", "descontos", "produtividade_1_valor", "produtividade_2_valor"]:
             self.fields[field_name].widget.attrs.setdefault("step", "0.01")
 
     class Meta:
         model = LancamentoColaborador
         fields = [
-            "vale_consumo",
-            "adicional_noturno",
-            "dsr",
+            "consumo_colaborador",
+            "descontos",
             "adiantamento_data",
-            "saldo_final_valor",
             "saldo_final_data",
             "produtividade_1_valor",
             "produtividade_1_data",
