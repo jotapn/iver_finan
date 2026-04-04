@@ -50,6 +50,10 @@ class RecorrenciaDespesa(models.Model):
 
 
 class Despesa(models.Model):
+    class Origem(models.TextChoices):
+        MANUAL = "MANUAL", "Manual"
+        FOLHA = "FOLHA", "Folha"
+
     descricao = models.CharField("descricao", max_length=255)
     categoria = models.ForeignKey(
         CategoriaDeSpesa,
@@ -94,6 +98,8 @@ class Despesa(models.Model):
         on_delete=models.SET_NULL,
         related_name="despesas",
     )
+    origem = models.CharField("origem", max_length=20, choices=Origem.choices, default=Origem.MANUAL)
+    folha_tipo = models.CharField("tipo da folha", max_length=50, blank=True)
 
     class Meta:
         verbose_name = "despesa"

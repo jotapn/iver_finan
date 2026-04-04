@@ -4,43 +4,61 @@
 {% block page_title %}Folha de Pagamento{% endblock %}
 
 {% block content %}
-<div class="row g-4">
-    <div class="col-lg-4">
-        <div class="card shadow-sm border-0">
-            <div class="card-body">
-                <h3 class="h6">Novo período</h3>
-                <form method="post" action="{% url 'folha:create' %}">
-                    {% csrf_token %}
-                    {{ form|crispy }}
-                    <button class="btn btn-primary" type="submit">Criar período</button>
-                </form>
-            </div>
-        </div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="h6 mb-1">Periodos cadastrados</h3>
+        <p class="text-muted mb-0">Gerencie os meses da folha e abra o painel de cada periodo.</p>
     </div>
-    <div class="col-lg-8">
-        <div class="card shadow-sm border-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Período</th>
-                            <th>Faturamento</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for periodo in object_list %}
-                            <tr>
-                                <td>{{ periodo }}</td>
-                                <td>{{ periodo.faturamento_total|brl }}</td>
-                                <td class="text-end"><a class="btn btn-outline-primary btn-sm" href="{% url 'folha:detail' periodo.ano periodo.mes %}">Abrir painel</a></td>
-                            </tr>
-                        {% empty %}
-                            <tr><td colspan="3" class="text-center py-4">Nenhum período cadastrado.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#novoPeriodoModal">
+        Novo periodo
+    </button>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Periodo</th>
+                    <th>Faturamento</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for periodo in object_list %}
+                    <tr>
+                        <td>{{ periodo }}</td>
+                        <td>{{ periodo.faturamento_total|brl }}</td>
+                        <td class="text-end"><a class="btn btn-outline-primary btn-sm" href="{% url 'folha:detail' periodo.ano periodo.mes %}">Abrir painel</a></td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="3" class="text-center py-4">Nenhum periodo cadastrado.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="novoPeriodoModal" tabindex="-1" aria-labelledby="novoPeriodoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <h2 class="modal-title h5 mb-0" id="novoPeriodoModalLabel">Novo periodo</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
+            <form method="post" action="{% url 'folha:create' %}">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-7">{{ form.mes|as_crispy_field }}</div>
+                        <div class="col-md-5">{{ form.ano|as_crispy_field }}</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-primary" type="submit">Criar periodo</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

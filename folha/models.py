@@ -32,7 +32,8 @@ class LancamentoColaborador(models.Model):
     )
     salario_bruto = models.DecimalField("salário bruto", max_digits=10, decimal_places=2, default=0)
     inss = models.DecimalField("INSS", max_digits=10, decimal_places=2, default=0)
-    vale_consumo = models.DecimalField("vale consumo", max_digits=10, decimal_places=2, default=0)
+    consumo_colaborador = models.DecimalField("consumo do colaborador", max_digits=10, decimal_places=2, default=0)
+    descontos = models.DecimalField("descontos", max_digits=10, decimal_places=2, default=0)
     salario_liquido = models.DecimalField("salário líquido", max_digits=10, decimal_places=2, default=0)
     adicional_noturno = models.DecimalField("adicional noturno", max_digits=10, decimal_places=2, default=0)
     dsr = models.DecimalField("DSR", max_digits=10, decimal_places=2, default=0)
@@ -59,6 +60,26 @@ class LancamentoColaborador(models.Model):
         return f"{self.colaborador.nome} - {self.periodo}"
 
     @property
+    def saldo_salario_base(self):
+        return (self.salario_bruto * Decimal("0.60")).quantize(Decimal("0.01"))
+
+    @property
+    def saldo_final_sugerido(self):
+        return (self.saldo_salario_base - self.consumo_colaborador - self.descontos).quantize(Decimal("0.01"))
+
+    @property
+    def total_beneficios(self):
+        beneficio = getattr(self, "beneficio", None)
+        if beneficio is None:
+            beneficio = self.periodo.beneficios.filter(colaborador=self.colaborador).first()
+        if not beneficio:
+            return Decimal("0.00")
+        return (
+            (beneficio.vale_transporte or Decimal("0.00"))
+            + (beneficio.ajuda_custo or Decimal("0.00"))
+        ).quantize(Decimal("0.01"))
+
+    @property
     def total_recebido(self):
         return sum(
             [
@@ -66,14 +87,16 @@ class LancamentoColaborador(models.Model):
                 self.saldo_final_valor,
                 self.produtividade_1_valor,
                 self.produtividade_2_valor,
+                self.total_beneficios,
             ],
             start=Decimal("0.00"),
         )
 
     def recalculate(self):
-        self.inss = (self.salario_bruto * Decimal("0.075")).quantize(Decimal("0.01"))
-        self.salario_liquido = (self.salario_bruto - self.inss - self.vale_consumo).quantize(Decimal("0.01"))
+        self.inss = Decimal("0.00")
         self.adiantamento_valor = (self.salario_bruto * Decimal("0.40")).quantize(Decimal("0.01"))
+        self.saldo_final_valor = self.saldo_final_sugerido
+        self.salario_liquido = (self.salario_bruto - self.consumo_colaborador - self.descontos).quantize(Decimal("0.01"))
         if not self.adiantamento_data:
             self.adiantamento_data = date(self.periodo.ano, self.periodo.mes, 15)
         if not self.saldo_final_data:

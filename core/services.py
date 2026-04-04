@@ -64,7 +64,7 @@ def get_dashboard_context() -> dict:
             ).aggregate(total=Sum("valor"))["total"]
         )
 
-    saldo = resumo_faturamento["total_liquido"] - total_despesas
+    saldo = resumo_faturamento["total_bruto"] - total_despesas
     proximos_7 = today + timedelta(days=7)
     despesas_vencer = Despesa.objects.filter(
         pago=False,
