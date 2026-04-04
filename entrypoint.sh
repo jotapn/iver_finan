@@ -8,6 +8,10 @@ if [ -n "$POSTGRES_HOST" ]; then
   done
 fi
 
+if [ "$(printf '%s' "${DJANGO_DEBUG:-False}" | tr '[:upper:]' '[:lower:]')" != "true" ]; then
+  python manage.py check --deploy --fail-level WARNING
+fi
+
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 

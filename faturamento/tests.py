@@ -27,6 +27,8 @@ class FaturamentoTests(TestCase):
         resumo = monthly_summary(2025, 1)
         self.assertEqual(resumo["total_bruto"], Decimal("200"))
         self.assertEqual(resumo["total_pessoas"], 4)
+        self.assertEqual(resumo["total_liquido"], Decimal("180.00"))
+        self.assertEqual(resumo["taxa_servico"], Decimal("20.00"))
         self.assertEqual(resumo["ticket_medio_diario"], Decimal("50.00"))
 
     def test_ticket_medio_ignora_dias_sem_quantidade_pessoas(self):

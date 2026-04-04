@@ -45,6 +45,11 @@ class DashboardViewTests(TestCase):
         response = self.client.get(reverse("dashboard"))
         self.assertEqual(response.status_code, 302)
 
+    def test_healthcheck_is_public(self):
+        response = self.client.get(reverse("healthcheck"))
+        self.assertEqual(response.status_code, 200)
+        self.assertJSONEqual(response.content, {"status": "ok"})
+
     def test_dashboard_renders(self):
         self.client.login(username="admin", password="123456")
         response = self.client.get(reverse("dashboard"))
