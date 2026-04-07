@@ -6,6 +6,7 @@ from django.utils import timezone
 from cadastros.models import SubcategoriaDeSpesa
 
 from .models import Despesa
+from .services import expense_period_choices
 
 
 class DateInput(forms.DateInput):
@@ -74,7 +75,7 @@ class DespesaForm(forms.ModelForm):
 
         year_choices = sorted(
             {today.year - 1, today.year, today.year + 1}
-            | set(Despesa.objects.values_list("ano_referencia", flat=True).distinct())
+            | {int(periodo.split("-")[0]) for periodo, _ in expense_period_choices()}
         )
         self.fields["mes_referencia"].widget = forms.Select(choices=MONTH_CHOICES)
         self.fields["ano_referencia"].widget = forms.Select(choices=[(year, str(year)) for year in year_choices])

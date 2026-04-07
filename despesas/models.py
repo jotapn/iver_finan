@@ -105,6 +105,11 @@ class Despesa(models.Model):
         verbose_name = "despesa"
         verbose_name_plural = "despesas"
         ordering = ["-ano_referencia", "-mes_referencia", "descricao"]
+        indexes = [
+            models.Index(fields=["ano_referencia", "mes_referencia"]),
+            models.Index(fields=["recorrencia", "ano_referencia", "mes_referencia"]),
+            models.Index(fields=["pago", "ano_referencia", "mes_referencia"]),
+        ]
 
     def __str__(self):
         return self.descricao

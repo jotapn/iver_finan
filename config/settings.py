@@ -67,6 +67,8 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 POSTGRES_DB = os.getenv("POSTGRES_DB")
+DATABASE_CONN_MAX_AGE = int(os.getenv("DJANGO_DB_CONN_MAX_AGE", "60"))
+DATABASE_CONN_HEALTH_CHECKS = env_bool("DJANGO_DB_CONN_HEALTH_CHECKS", True)
 if POSTGRES_DB:
     DATABASES = {
         "default": {
@@ -76,6 +78,8 @@ if POSTGRES_DB:
             "PASSWORD": os.getenv("POSTGRES_PASSWORD", ""),
             "HOST": os.getenv("POSTGRES_HOST", "localhost"),
             "PORT": os.getenv("POSTGRES_PORT", "5432"),
+            "CONN_MAX_AGE": DATABASE_CONN_MAX_AGE,
+            "CONN_HEALTH_CHECKS": DATABASE_CONN_HEALTH_CHECKS,
         }
     }
 else:
@@ -83,6 +87,7 @@ else:
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
+            "CONN_MAX_AGE": 0,
         }
     }
 
@@ -110,8 +115,12 @@ CSRF_TRUSTED_ORIGINS = [
     if origin
 ]
 
-USE_X_FORWARDED_HOST = env_bool("DJANGO_USE_X_FORWARDED_HOST", True)
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = env_bool("DJANGO_USE_X_FORWARDED_HOST", not DEBUG)
+SECURE_PROXY_SSL_HEADER = (
+    ("HTTP_X_FORWARDED_PROTO", "https")
+    if env_bool("DJANGO_USE_X_FORWARDED_PROTO", not DEBUG)
+    else None
+)
 SECURE_SSL_REDIRECT = env_bool("DJANGO_SECURE_SSL_REDIRECT", not DEBUG)
 SESSION_COOKIE_SECURE = env_bool("DJANGO_SESSION_COOKIE_SECURE", not DEBUG)
 CSRF_COOKIE_SECURE = env_bool("DJANGO_CSRF_COOKIE_SECURE", not DEBUG)

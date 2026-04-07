@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 from calendar import monthrange
+from collections import defaultdict
 from datetime import date
 from decimal import Decimal
 
 from django.db.models import Sum
+
+from cadastros.models import SubcategoriaDeSpesa
 
 from .models import Despesa, RecorrenciaDespesa
 
@@ -78,6 +81,45 @@ def top_subcategories(year: int, month: int, limit: int = 10):
     )
 
 
+def month_label(month: int) -> str:
+    return {
+        1: "Janeiro",
+        2: "Fevereiro",
+        3: "Marco",
+        4: "Abril",
+        5: "Maio",
+        6: "Junho",
+        7: "Julho",
+        8: "Agosto",
+        9: "Setembro",
+        10: "Outubro",
+        11: "Novembro",
+        12: "Dezembro",
+    }.get(month, str(month))
+
+
+def expense_period_choices():
+    return [
+        (f"{ano:04d}-{mes:02d}", f"{month_label(mes)}/{ano}")
+        for ano, mes in (
+            Despesa.objects.values_list("ano_referencia", "mes_referencia")
+            .distinct()
+            .order_by("-ano_referencia", "-mes_referencia")
+        )
+    ]
+
+
+def grouped_subcategory_options():
+    grouped = defaultdict(list)
+    items = (
+        SubcategoriaDeSpesa.objects.values("id", "nome", "categoria_id")
+        .order_by("categoria__nome", "nome")
+    )
+    for item in items:
+        grouped[str(item["categoria_id"])].append({"id": str(item["id"]), "nome": item["nome"]})
+    return dict(grouped)
+
+
 def month_start(year: int, month: int) -> date:
     return date(year, month, 1)
 
@@ -86,6 +128,13 @@ def next_month(value: date) -> date:
     if value.month == 12:
         return date(value.year + 1, 1, 1)
     return date(value.year, value.month + 1, 1)
+
+
+def iter_periods(start: date, end: date):
+    current = start
+    while current <= end:
+        yield current
+        current = next_month(current)
 
 
 def build_due_date(year: int, month: int, due_day: int | None) -> date | None:
@@ -140,6 +189,18 @@ def generate_recurring_expenses_until(year: int, month: int) -> None:
         "forma_pagamento",
         "banco",
     )
+    recurrence_ids = list(recurrences.values_list("id", flat=True))
+    if not recurrence_ids:
+        return
+
+    existing_periods = {
+        (recorrencia_id, ano_referencia, mes_referencia)
+        for recorrencia_id, ano_referencia, mes_referencia in Despesa.objects.filter(
+            recorrencia_id__in=recurrence_ids,
+            ano_referencia__lte=target_period.year,
+        ).values_list("recorrencia_id", "ano_referencia", "mes_referencia")
+    }
+    pending_expenses = []
 
     for recorrencia in recurrences:
         current_period = month_start(recorrencia.data_inicio.year, recorrencia.data_inicio.month)
@@ -150,26 +211,27 @@ def generate_recurring_expenses_until(year: int, month: int) -> None:
             if recurrence_end < final_period:
                 final_period = recurrence_end
 
-        while current_period <= final_period:
-            exists = Despesa.objects.filter(
-                recorrencia=recorrencia,
-                ano_referencia=current_period.year,
-                mes_referencia=current_period.month,
-            ).exists()
-            if not exists:
-                Despesa.objects.create(
-                    descricao=recorrencia.descricao,
-                    categoria=recorrencia.categoria,
-                    subcategoria=recorrencia.subcategoria,
-                    valor=recorrencia.valor,
-                    data_vencimento=build_due_date(current_period.year, current_period.month, recorrencia.dia_vencimento),
-                    data_pagamento=None,
-                    forma_pagamento=recorrencia.forma_pagamento,
-                    banco=recorrencia.banco,
-                    pago=False,
-                    mes_referencia=current_period.month,
-                    ano_referencia=current_period.year,
-                    observacao=recorrencia.observacao,
-                    recorrencia=recorrencia,
+        for period in iter_periods(current_period, final_period):
+            period_key = (recorrencia.id, period.year, period.month)
+            if period_key not in existing_periods:
+                pending_expenses.append(
+                    Despesa(
+                        descricao=recorrencia.descricao,
+                        categoria=recorrencia.categoria,
+                        subcategoria=recorrencia.subcategoria,
+                        valor=recorrencia.valor,
+                        data_vencimento=build_due_date(period.year, period.month, recorrencia.dia_vencimento),
+                        data_pagamento=None,
+                        forma_pagamento=recorrencia.forma_pagamento,
+                        banco=recorrencia.banco,
+                        pago=False,
+                        mes_referencia=period.month,
+                        ano_referencia=period.year,
+                        observacao=recorrencia.observacao,
+                        recorrencia=recorrencia,
+                    )
                 )
-            current_period = next_month(current_period)
+                existing_periods.add(period_key)
+
+    if pending_expenses:
+        Despesa.objects.bulk_create(pending_expenses)
