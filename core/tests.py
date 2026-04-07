@@ -8,6 +8,8 @@ from cadastros.models import Banco, CategoriaDeSpesa, FormaPagamento, Setor, Sub
 from despesas.models import Despesa
 from faturamento.models import RegistroFaturamento
 from .services import get_dashboard_context
+from usuarios.models import PerfilAcesso
+from usuarios.permissions import get_module_access_map
 
 
 class DashboardViewTests(TestCase):
@@ -60,5 +62,28 @@ class DashboardViewTests(TestCase):
         self.assertEqual(context["resumo_mes"]["faturamento_bruto"], 150)
         self.assertEqual(context["resumo_mes"]["despesas"], 40)
         self.assertEqual(context["resumo_mes"]["saldo"], 95)
+
+    def test_module_access_map_is_cached_on_user(self):
+        perfil_acesso = PerfilAcesso.objects.create(
+            nome="Financeiro",
+            ver_dashboard=True,
+            ver_cadastros=False,
+            ver_faturamento=True,
+            ver_despesas=False,
+            ver_folha=True,
+            ver_dre=False,
+            ver_usuarios=False,
+            ver_admin=False,
+        )
+        self.user.perfil.perfil_acesso = perfil_acesso
+        self.user.perfil.save(update_fields=["perfil_acesso"])
+
+        access_map = get_module_access_map(self.user)
+
+        self.assertIs(access_map, get_module_access_map(self.user))
+        self.assertTrue(access_map["dashboard"])
+        self.assertFalse(access_map["cadastros"])
+        self.assertFalse(access_map["despesas"])
+        self.assertTrue(access_map["folha"])
 
 # Create your tests here.

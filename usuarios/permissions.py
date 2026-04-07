@@ -16,21 +16,35 @@ MODULE_FIELD_MAP = {
 }
 
 
-def has_module_access(user, module):
+def get_module_access_map(user):
+    cached = getattr(user, "_module_access_map", None)
+    if cached is not None:
+        return cached
+
     if not getattr(user, "is_authenticated", False):
-        return False
-    if getattr(user, "is_superuser", False):
-        return True
+        cached = {module: False for module in MODULE_FIELD_MAP}
+    elif getattr(user, "is_superuser", False):
+        cached = {module: True for module in MODULE_FIELD_MAP}
+    else:
+        perfil = getattr(user, "perfil", None)
+        perfil_acesso = getattr(perfil, "perfil_acesso", None)
+        if perfil_acesso is None:
+            cached = {module: True for module in MODULE_FIELD_MAP}
+        else:
+            cached = {
+                module: getattr(perfil_acesso, field_name, False)
+                for module, field_name in MODULE_FIELD_MAP.items()
+            }
 
-    perfil = getattr(user, "perfil", None)
-    perfil_acesso = getattr(perfil, "perfil_acesso", None)
-    if perfil_acesso is None:
-        return True
+    setattr(user, "_module_access_map", cached)
+    return cached
 
+
+def has_module_access(user, module):
     field_name = MODULE_FIELD_MAP.get(module)
     if not field_name:
         return True
-    return getattr(perfil_acesso, field_name, False)
+    return get_module_access_map(user).get(module, False)
 
 
 class ModuleAccessMixin(AccessMixin):

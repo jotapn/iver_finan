@@ -89,6 +89,10 @@
 </div>
 {% endblock %}
 
+{% block vendor_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+{% endblock %}
+
 {% block extra_js %}
 <script>
 const ctx = document.getElementById('overviewChart');
