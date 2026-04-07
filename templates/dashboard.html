@@ -90,30 +90,36 @@
 {% endblock %}
 
 {% block vendor_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-const ctx = document.getElementById('overviewChart');
-new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: {{ chart_data.labels|safe }},
-        datasets: [
-            { label: 'Faturamento', data: {{ chart_data.faturamento|safe }}, backgroundColor: '#213a33', borderRadius: 10 },
-            { label: 'Despesas', data: {{ chart_data.despesas|safe }}, backgroundColor: '#cdbd9d', borderRadius: 10 }
-        ]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: '#182b25' } } },
-        scales: {
-            x: { ticks: { color: '#2d4b42' }, grid: { display: false } },
-            y: { ticks: { color: '#2d4b42' }, grid: { color: 'rgba(33, 58, 51, 0.08)' } }
-        }
+document.addEventListener('DOMContentLoaded', function () {
+    const ctx = document.getElementById('overviewChart');
+    if (!ctx || typeof Chart === 'undefined') {
+        return;
     }
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ chart_data.labels|safe }},
+            datasets: [
+                { label: 'Faturamento', data: {{ chart_data.faturamento|safe }}, backgroundColor: '#213a33', borderRadius: 10 },
+                { label: 'Despesas', data: {{ chart_data.despesas|safe }}, backgroundColor: '#cdbd9d', borderRadius: 10 }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#182b25' } } },
+            scales: {
+                x: { ticks: { color: '#2d4b42' }, grid: { display: false } },
+                y: { ticks: { color: '#2d4b42' }, grid: { color: 'rgba(33, 58, 51, 0.08)' } }
+            }
+        }
+    });
 });
 </script>
 {% endblock %}

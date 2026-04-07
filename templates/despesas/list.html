@@ -202,7 +202,7 @@
 {% endblock %}
 
 {% block vendor_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
 {% block extra_js %}
@@ -250,40 +250,50 @@ document.addEventListener('DOMContentLoaded', function () {
             refreshSubcategoryOptions();
         });
     }
-});
 
-new Chart(document.getElementById('expenseChart'), {
-    type: 'bar',
-    data: {
-        labels: {{ chart_data.labels|safe }},
-        datasets: [{ label: 'Valor', data: {{ chart_data.values|safe }}, backgroundColor: '#213a33', borderRadius: 10 }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: '#182b25' } } },
-        scales: {
-            x: { ticks: { color: '#2d4b42' }, grid: { display: false } },
-            y: { ticks: { color: '#2d4b42' }, grid: { color: 'rgba(33, 58, 51, 0.08)' } }
-        }
+    if (typeof Chart === 'undefined') {
+        return;
     }
-});
 
-new Chart(document.getElementById('subcategoryExpenseChart'), {
-    type: 'bar',
-    data: {
-        labels: {{ subcategory_chart_data.labels|safe }},
-        datasets: [{ label: 'Valor', data: {{ subcategory_chart_data.values|safe }}, backgroundColor: '#c3a96a', borderRadius: 10 }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        indexAxis: 'y',
-        plugins: { legend: { labels: { color: '#182b25' } } },
-        scales: {
-            x: { ticks: { color: '#2d4b42' }, grid: { color: 'rgba(33, 58, 51, 0.08)' } },
-            y: { ticks: { color: '#2d4b42' }, grid: { display: false } }
-        }
+    const expenseChart = document.getElementById('expenseChart');
+    if (expenseChart) {
+        new Chart(expenseChart, {
+            type: 'bar',
+            data: {
+                labels: {{ chart_data.labels|safe }},
+                datasets: [{ label: 'Valor', data: {{ chart_data.values|safe }}, backgroundColor: '#213a33', borderRadius: 10 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#182b25' } } },
+                scales: {
+                    x: { ticks: { color: '#2d4b42' }, grid: { display: false } },
+                    y: { ticks: { color: '#2d4b42' }, grid: { color: 'rgba(33, 58, 51, 0.08)' } }
+                }
+            }
+        });
+    }
+
+    const subcategoryExpenseChart = document.getElementById('subcategoryExpenseChart');
+    if (subcategoryExpenseChart) {
+        new Chart(subcategoryExpenseChart, {
+            type: 'bar',
+            data: {
+                labels: {{ subcategory_chart_data.labels|safe }},
+                datasets: [{ label: 'Valor', data: {{ subcategory_chart_data.values|safe }}, backgroundColor: '#c3a96a', borderRadius: 10 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: { legend: { labels: { color: '#182b25' } } },
+                scales: {
+                    x: { ticks: { color: '#2d4b42' }, grid: { color: 'rgba(33, 58, 51, 0.08)' } },
+                    y: { ticks: { color: '#2d4b42' }, grid: { display: false } }
+                }
+            }
+        });
     }
 });
 </script>
