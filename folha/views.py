@@ -55,7 +55,6 @@ class PeriodoFolhaDetailView(ModuleAccessMixin, LoginRequiredMixin, DetailView):
         beneficios = list(periodo.beneficios.select_related("colaborador"))
         beneficios_por_colaborador = {beneficio.colaborador_id: beneficio for beneficio in beneficios}
         for lancamento in lancamentos:
-            lancamento.inline_form = LancamentoColaboradorForm(instance=lancamento, prefix=f"lanc-{lancamento.pk}")
             lancamento.beneficio = beneficios_por_colaborador.get(lancamento.colaborador_id)
         context["lancamentos"] = lancamentos
         context["beneficios"] = beneficios
@@ -89,11 +88,18 @@ class ColaboradorHistoricoView(ModuleAccessMixin, LoginRequiredMixin, ListView):
     required_module = "folha"
 
     def get_queryset(self):
-        return LancamentoColaborador.objects.filter(colaborador_id=self.kwargs["pk"]).select_related("periodo", "colaborador")
+        if not hasattr(self, "_queryset"):
+            self._queryset = LancamentoColaborador.objects.filter(colaborador_id=self.kwargs["pk"]).select_related(
+                "periodo",
+                "colaborador",
+            )
+        return self._queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["colaborador"] = self.get_queryset().first().colaborador if self.get_queryset() else None
+        historico = list(context["historico"])
+        context["historico"] = historico
+        context["colaborador"] = historico[0].colaborador if historico else None
         return context
 
 
