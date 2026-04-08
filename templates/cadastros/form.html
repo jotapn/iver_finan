@@ -2,14 +2,15 @@
 {% load crispy_forms_tags %}
 
 {% block page_title %}{{ cadastro_title }}{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Preencha os dados do cadastro e mantenha a base operacional consistente.</p>{% endblock %}
 
 {% block content %}
-<div class="card shadow-sm border-0">
+<div class="card border-0">
     <div class="card-body">
         <form method="post">
             {% csrf_token %}
             {{ form|crispy }}
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 flex-wrap">
                 <button class="btn btn-primary" type="submit">Salvar</button>
                 <a class="btn btn-outline-secondary" href="{% url 'cadastros:list' cadastro_slug %}">Cancelar</a>
             </div>

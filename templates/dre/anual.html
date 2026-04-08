@@ -2,15 +2,18 @@
 {% load finance_extras %}
 
 {% block page_title %}DRE {{ dre.year }}{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Demonstrativo anual com visao mensal das linhas de receita, pessoal, CMV e despesas operacionais.</p>{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <form method="get" action="{% url 'dre:annual' dre.year %}" class="d-flex gap-2">
-        <input class="form-control" type="number" name="ano" value="{{ dre.year }}">
-    </form>
-    <a class="btn btn-primary" href="{% url 'dre:export' dre.year %}">Exportar XLSX</a>
+<div class="toolbar-card mb-4">
+    <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+        <form method="get" action="{% url 'dre:annual' dre.year %}" class="d-flex gap-2">
+            <input class="form-control" type="number" name="ano" value="{{ dre.year }}">
+        </form>
+        <a class="btn btn-primary" href="{% url 'dre:export' dre.year %}">Exportar XLSX</a>
+    </div>
 </div>
-<div class="card shadow-sm border-0">
+<div class="card border-0">
     <div class="table-responsive">
         <table class="table table-sm table-bordered mb-0">
             <thead class="table-light">
@@ -22,31 +25,31 @@
             </thead>
             <tbody>
                 <tr><th>Faturamento Bruto</th>{% for month in dre.months %}<td>{{ dre.receita_bruta|get_item:month|brl }}</td>{% endfor %}<td>{{ dre.receita_bruta|annual_sum|brl }}</td></tr>
-                <tr><th>Taxa de Serviço 10%</th>{% for month in dre.months %}<td>{{ dre.taxa_servico|get_item:month|brl }}</td>{% endfor %}<td>{{ dre.taxa_servico|annual_sum|brl }}</td></tr>
-                <tr><th>Faturamento Líquido</th>{% for month in dre.months %}<td>{{ dre.receita_liquida|get_item:month|brl }}</td>{% endfor %}<td>{{ dre.receita_liquida|annual_sum|brl }}</td></tr>
+                <tr><th>Taxa de Servico 10%</th>{% for month in dre.months %}<td>{{ dre.taxa_servico|get_item:month|brl }}</td>{% endfor %}<td>{{ dre.taxa_servico|annual_sum|brl }}</td></tr>
+                <tr><th>Faturamento Liquido</th>{% for month in dre.months %}<td>{{ dre.receita_liquida|get_item:month|brl }}</td>{% endfor %}<td>{{ dre.receita_liquida|annual_sum|brl }}</td></tr>
 
                 {% for line in dre.pessoal_lines %}
                     <tr><td>{{ line.label }}</td>{% for month in dre.months %}<td>{{ line.values|get_item:month|brl }}</td>{% endfor %}<td>{{ line.values|annual_sum|brl }}</td></tr>
                 {% endfor %}
-                <tr class="table-light"><th>TOTAL DESPESAS COM PESSOAL</th>{% for month in dre.months %}<td>{{ dre.total_pessoal|get_item:month|brl }}</td>{% endfor %}<td>{{ dre.total_pessoal|annual_sum|brl }}</td></tr>
+                <tr class="table-light"><th>Total despesas com pessoal</th>{% for month in dre.months %}<td>{{ dre.total_pessoal|get_item:month|brl }}</td>{% endfor %}<td>{{ dre.total_pessoal|annual_sum|brl }}</td></tr>
 
                 {% for line in dre.cmv_lines %}
                     <tr><td>{{ line.label }}</td>{% for month in dre.months %}<td>{{ line.values|get_item:month|brl }}</td>{% endfor %}<td>{{ line.values|annual_sum|brl }}</td></tr>
                 {% endfor %}
-                <tr class="table-light"><th>TOTAL CMV</th>{% for month in dre.months %}<td>{{ dre.total_cmv|get_item:month|brl }}</td>{% endfor %}<td>{{ dre.total_cmv|annual_sum|brl }}</td></tr>
+                <tr class="table-light"><th>Total CMV</th>{% for month in dre.months %}<td>{{ dre.total_cmv|get_item:month|brl }}</td>{% endfor %}<td>{{ dre.total_cmv|annual_sum|brl }}</td></tr>
 
                 {% for line in dre.operacionais_lines %}
                     <tr><td>{{ line.label }}</td>{% for month in dre.months %}<td>{{ line.values|get_item:month|brl }}</td>{% endfor %}<td>{{ line.values|annual_sum|brl }}</td></tr>
                 {% endfor %}
-                <tr class="table-light"><th>TOTAL DESPESAS OPERACIONAIS</th>{% for month in dre.months %}<td>{{ dre.total_operacionais|get_item:month|brl }}</td>{% endfor %}<td>{{ dre.total_operacionais|annual_sum|brl }}</td></tr>
+                <tr class="table-light"><th>Total despesas operacionais</th>{% for month in dre.months %}<td>{{ dre.total_operacionais|get_item:month|brl }}</td>{% endfor %}<td>{{ dre.total_operacionais|annual_sum|brl }}</td></tr>
 
                 {% for line in dre.financeiras_lines %}
                     <tr><td>{{ line.label }}</td>{% for month in dre.months %}<td>{{ line.values|get_item:month|brl }}</td>{% endfor %}<td>{{ line.values|annual_sum|brl }}</td></tr>
                 {% endfor %}
-                <tr class="table-light"><th>TOTAL DESPESAS FINANCEIRAS</th>{% for month in dre.months %}<td>{{ dre.total_financeiras|get_item:month|brl }}</td>{% endfor %}<td>{{ dre.total_financeiras|annual_sum|brl }}</td></tr>
+                <tr class="table-light"><th>Total despesas financeiras</th>{% for month in dre.months %}<td>{{ dre.total_financeiras|get_item:month|brl }}</td>{% endfor %}<td>{{ dre.total_financeiras|annual_sum|brl }}</td></tr>
 
-                <tr class="table-warning"><th>RESULTADO ANTES DO IR</th>{% for month in dre.months %}<td>{{ dre.resultado_antes_ir|get_item:month|brl }}</td>{% endfor %}<td>{{ dre.resultado_antes_ir|annual_sum|brl }}</td></tr>
-                <tr class="table-success"><th>RESULTADO LÍQUIDO</th>{% for month in dre.months %}<td>{{ dre.resultado_liquido|get_item:month|brl }}</td>{% endfor %}<td>{{ dre.resultado_liquido|annual_sum|brl }}</td></tr>
+                <tr class="table-warning"><th>Resultado antes do IR</th>{% for month in dre.months %}<td>{{ dre.resultado_antes_ir|get_item:month|brl }}</td>{% endfor %}<td>{{ dre.resultado_antes_ir|annual_sum|brl }}</td></tr>
+                <tr class="table-success"><th>Resultado liquido</th>{% for month in dre.months %}<td>{{ dre.resultado_liquido|get_item:month|brl }}</td>{% endfor %}<td>{{ dre.resultado_liquido|annual_sum|brl }}</td></tr>
             </tbody>
         </table>
     </div>

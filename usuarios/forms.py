@@ -24,6 +24,17 @@ class UsuarioCreateForm(forms.ModelForm):
             "is_active": "ativo",
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["username"].widget.attrs.update({"placeholder": "usuario.financeiro"})
+        self.fields["email"].widget.attrs.update({"placeholder": "nome@empresa.com"})
+        self.fields["password1"].widget.attrs.update({"placeholder": "Digite uma senha inicial"})
+        self.fields["password2"].widget.attrs.update({"placeholder": "Repita a senha"})
+        self.fields["nome_completo"].widget.attrs.update({"placeholder": "Nome completo do colaborador"})
+        self.fields["telefone"].widget.attrs.update({"placeholder": "(00) 00000-0000"})
+        self.fields["cargo"].widget.attrs.update({"placeholder": "Ex.: Coordenacao financeira"})
+        self.fields["observacao"].widget.attrs.update({"placeholder": "Observacoes internas sobre este usuario...", "rows": 4})
+
     def clean(self):
         cleaned_data = super().clean()
         if cleaned_data.get("password1") != cleaned_data.get("password2"):
@@ -66,6 +77,14 @@ class UsuarioUpdateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["username"].widget.attrs.update({"placeholder": "usuario.financeiro"})
+        self.fields["email"].widget.attrs.update({"placeholder": "nome@empresa.com"})
+        self.fields["nova_senha"].widget.attrs.update({"placeholder": "Preencha apenas se quiser alterar"})
+        self.fields["confirmar_nova_senha"].widget.attrs.update({"placeholder": "Repita a nova senha"})
+        self.fields["nome_completo"].widget.attrs.update({"placeholder": "Nome completo do colaborador"})
+        self.fields["telefone"].widget.attrs.update({"placeholder": "(00) 00000-0000"})
+        self.fields["cargo"].widget.attrs.update({"placeholder": "Ex.: Coordenacao financeira"})
+        self.fields["observacao"].widget.attrs.update({"placeholder": "Observacoes internas sobre este usuario...", "rows": 4})
         perfil = getattr(self.instance, "perfil", None)
         if perfil:
             self.fields["perfil_acesso"].initial = perfil.perfil_acesso
@@ -101,6 +120,13 @@ class UsuarioUpdateForm(forms.ModelForm):
 
 
 class PerfilForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["nome_completo"].widget.attrs.update({"placeholder": "Nome completo"})
+        self.fields["telefone"].widget.attrs.update({"placeholder": "(00) 00000-0000"})
+        self.fields["cargo"].widget.attrs.update({"placeholder": "Cargo ou funcao"})
+        self.fields["observacao"].widget.attrs.update({"placeholder": "Contexto adicional sobre o perfil...", "rows": 4})
+
     class Meta:
         model = Perfil
         fields = ["nome_completo", "telefone", "cargo", "observacao"]

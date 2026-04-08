@@ -2,18 +2,28 @@
 {% load crispy_forms_tags %}
 
 {% block page_title %}Editar perfil{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Atualize apenas os dados complementares do perfil vinculado ao usuario.</p>{% endblock %}
 
 {% block content %}
-<div class="card shadow-sm border-0">
+<div class="card border-0">
     <div class="card-body">
         <div class="mb-3">
             <h3 class="h6 mb-1">{{ object.user.username }}</h3>
-            <p class="text-muted mb-0">Atualize apenas os dados do perfil vinculado.</p>
+            <p class="text-muted mb-0">Edicao focada no perfil pessoal, sem mexer no acesso da conta.</p>
         </div>
         <form method="post">
             {% csrf_token %}
-            {{ form|crispy }}
-            <div class="d-flex gap-2">
+            <div class="form-shell">
+                <section class="form-panel">
+                    <div class="row form-grid-tight">
+                        <div class="col-md-6">{{ form.nome_completo|as_crispy_field }}</div>
+                        <div class="col-md-3">{{ form.telefone|as_crispy_field }}</div>
+                        <div class="col-md-3">{{ form.cargo|as_crispy_field }}</div>
+                        <div class="col-12">{{ form.observacao|as_crispy_field }}</div>
+                    </div>
+                </section>
+            </div>
+            <div class="form-actions">
                 <button class="btn btn-primary" type="submit">Salvar perfil</button>
                 <a class="btn btn-outline-secondary" href="{% url 'usuarios:list' %}">Cancelar</a>
             </div>

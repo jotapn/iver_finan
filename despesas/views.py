@@ -126,7 +126,7 @@ class DespesaCreateView(ModuleAccessMixin, LoginRequiredMixin, CreateView):
         recorrencia = create_or_update_recurrence(
             self.object,
             recorrente=form.cleaned_data["recorrente"],
-            recorrencia_ativa=form.cleaned_data["recorrencia_ativa"],
+            recorrencia_ativa=form.cleaned_data.get("recorrencia_ativa", True),
             recorrencia_data_fim=form.cleaned_data["recorrencia_data_fim"],
         )
         if recorrencia:
@@ -160,7 +160,7 @@ class DespesaUpdateView(ModuleAccessMixin, LoginRequiredMixin, UpdateView):
         recorrencia = create_or_update_recurrence(
             self.object,
             recorrente=form.cleaned_data["recorrente"],
-            recorrencia_ativa=form.cleaned_data["recorrencia_ativa"],
+            recorrencia_ativa=form.cleaned_data.get("recorrencia_ativa", True),
             recorrencia_data_fim=form.cleaned_data["recorrencia_data_fim"],
         )
         if recorrencia and recorrencia.ativa:
