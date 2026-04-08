@@ -2,59 +2,77 @@
 {% load finance_extras %}
 
 {% block page_title %}Despesas{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Filtre o periodo, acompanhe recorrencias e priorize os pagamentos mais proximos.</p>{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-start mb-3">
-    <form method="get" class="row g-3 filter-toolbar">
-        <div class="col-md-4">
-            <label class="form-label" for="{{ filter.form.periodo.id_for_label }}">Período</label>
-            {{ filter.form.periodo }}
+<div class="toolbar-card mb-4">
+    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+        <form method="get" class="row g-3 filter-toolbar flex-grow-1">
+            <div class="col-md-4">
+                <label class="form-label" for="{{ filter.form.periodo.id_for_label }}">Periodo</label>
+                {{ filter.form.periodo }}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label" for="{{ filter.form.categoria.id_for_label }}">Categoria</label>
+                {{ filter.form.categoria }}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label" for="{{ filter.form.subcategoria.id_for_label }}">Subcategoria</label>
+                {{ filter.form.subcategoria }}
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" for="{{ filter.form.pago.id_for_label }}">Status</label>
+                {{ filter.form.pago }}
+            </div>
+            <div class="col-12 d-flex gap-2 flex-wrap">
+                <button class="btn btn-outline-secondary" type="submit">Filtrar</button>
+                <a class="btn btn-outline-primary" href="{% url 'despesas:list' %}">Limpar</a>
+            </div>
+        </form>
+        <div class="d-flex gap-2 flex-wrap">
+            <a class="btn btn-outline-primary" href="{% url 'despesas:summary' %}?ano={{ selected_year }}&mes={{ selected_month }}">Resumo mensal</a>
+            <a class="btn btn-primary" href="{% url 'despesas:create' %}">Nova despesa</a>
         </div>
-        <div class="col-md-3">
-            <label class="form-label" for="{{ filter.form.categoria.id_for_label }}">Categoria</label>
-            {{ filter.form.categoria }}
-        </div>
-        <div class="col-md-3">
-            <label class="form-label" for="{{ filter.form.subcategoria.id_for_label }}">Subcategoria</label>
-            {{ filter.form.subcategoria }}
-        </div>
-        <div class="col-md-2">
-            <label class="form-label" for="{{ filter.form.pago.id_for_label }}">Status</label>
-            {{ filter.form.pago }}
-        </div>
-        <div class="col-12 d-flex gap-2">
-            <button class="btn btn-outline-secondary" type="submit">Filtrar</button>
-            <a class="btn btn-outline-primary" href="{% url 'despesas:list' %}">Limpar</a>
-        </div>
-    </form>
-    <div class="d-flex gap-2">
-        <a class="btn btn-outline-primary" href="{% url 'despesas:summary' %}?ano={{ selected_year }}&mes={{ selected_month }}">Resumo mensal</a>
-        <a class="btn btn-primary" href="{% url 'despesas:create' %}">Nova despesa</a>
     </div>
 </div>
 
 <div class="row g-4 mb-4">
     <div class="col-lg-4">
         <div class="d-grid gap-4">
-            <div class="card shadow-sm border-0">
+            <div class="card border-0">
                 <div class="card-body">
-                    <h3 class="h6">Gráfico por categoria</h3>
+                    <div class="section-heading">
+                        <div>
+                            <span class="eyebrow">Distribuicao</span>
+                            <h3>Por categoria</h3>
+                        </div>
+                    </div>
                     <div class="chart-box">
                         <canvas id="expenseChart"></canvas>
                     </div>
                 </div>
             </div>
-            <div class="card shadow-sm border-0">
+            <div class="card border-0">
                 <div class="card-body">
-                    <h3 class="h6">Gráfico por subcategoria</h3>
+                    <div class="section-heading">
+                        <div>
+                            <span class="eyebrow">Detalhe</span>
+                            <h3>Por subcategoria</h3>
+                        </div>
+                    </div>
                     <div class="chart-box">
                         <canvas id="subcategoryExpenseChart"></canvas>
                     </div>
                 </div>
             </div>
-            <div class="card shadow-sm border-0">
+            <div class="card border-0">
                 <div class="card-body">
-                    <h3 class="h6">Top 10 de subcategorias</h3>
+                    <div class="section-heading">
+                        <div>
+                            <span class="eyebrow">Ranking</span>
+                            <h3>Top 10 subcategorias</h3>
+                        </div>
+                    </div>
                     <div class="table-responsive">
                         <table class="table table-sm mb-0 align-middle">
                             <thead>
@@ -84,14 +102,14 @@
         </div>
     </div>
     <div class="col-lg-8">
-        <div class="card shadow-sm border-0">
+        <div class="card border-0">
             <div class="table-responsive">
                 <table class="table table-hover mb-0 expense-table" id="expense-table">
                     <thead>
                         <tr>
                             <th>
                                 <a class="sort-link" href="?{% if ordering_base_query %}{{ ordering_base_query }}&{% endif %}ordenar={% if current_ordering == 'descricao' %}-descricao{% else %}descricao{% endif %}">
-                                    Descrição
+                                    Descricao
                                     {% if current_ordering == 'descricao' %}<span class="sort-indicator" aria-hidden="true">↑</span>{% elif current_ordering == '-descricao' %}<span class="sort-indicator" aria-hidden="true">↓</span>{% else %}<span class="sort-indicator" aria-hidden="true">↕</span>{% endif %}
                                 </a>
                             </th>
@@ -137,14 +155,14 @@
                                         {% if object.recorrencia %}
                                             <div class="d-flex flex-wrap gap-2 align-items-center">
                                                 <span class="badge recurring-badge">
-                                                    {% if object.recorrencia.ativa %}Recorrente ativa{% else %}Recorrência encerrada{% endif %}
+                                                    {% if object.recorrencia.ativa %}Recorrente ativa{% else %}Recorrencia encerrada{% endif %}
                                                 </span>
                                                 <small class="text-muted">
-                                                    Início {{ object.recorrencia.data_inicio|date:"m/Y" }}
+                                                    Inicio {{ object.recorrencia.data_inicio|date:"m/Y" }}
                                                     {% if object.recorrencia.data_fim %}
-                                                        • até {{ object.recorrencia.data_fim|date:"m/Y" }}
+                                                        • ate {{ object.recorrencia.data_fim|date:"m/Y" }}
                                                     {% else %}
-                                                        • sem término
+                                                        • sem termino
                                                     {% endif %}
                                                 </small>
                                             </div>
@@ -183,14 +201,14 @@
             {% if is_paginated %}
                 <div class="d-flex justify-content-between align-items-center px-3 py-3 border-top expense-pagination">
                     <small class="text-muted">
-                        Página {{ page_obj.number }} de {{ paginator.num_pages }}
+                        Pagina {{ page_obj.number }} de {{ paginator.num_pages }}
                     </small>
                     <div class="d-flex gap-2">
                         {% if page_obj.has_previous %}
                             <a class="btn btn-outline-secondary btn-sm" href="?{% if pagination_base_query %}{{ pagination_base_query }}&{% endif %}page={{ page_obj.previous_page_number }}">Anterior</a>
                         {% endif %}
                         {% if page_obj.has_next %}
-                            <a class="btn btn-outline-secondary btn-sm" href="?{% if pagination_base_query %}{{ pagination_base_query }}&{% endif %}page={{ page_obj.next_page_number }}">Próxima</a>
+                            <a class="btn btn-outline-secondary btn-sm" href="?{% if pagination_base_query %}{{ pagination_base_query }}&{% endif %}page={{ page_obj.next_page_number }}">Proxima</a>
                         {% endif %}
                     </div>
                 </div>
@@ -199,6 +217,10 @@
     </div>
 </div>
 {{ subcategory_options|json_script:"subcategory-options" }}
+{% endblock %}
+
+{% block vendor_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
 {% block extra_js %}
@@ -246,40 +268,50 @@ document.addEventListener('DOMContentLoaded', function () {
             refreshSubcategoryOptions();
         });
     }
-});
 
-new Chart(document.getElementById('expenseChart'), {
-    type: 'bar',
-    data: {
-        labels: {{ chart_data.labels|safe }},
-        datasets: [{ label: 'Valor', data: {{ chart_data.values|safe }}, backgroundColor: '#213a33', borderRadius: 10 }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: '#182b25' } } },
-        scales: {
-            x: { ticks: { color: '#2d4b42' }, grid: { display: false } },
-            y: { ticks: { color: '#2d4b42' }, grid: { color: 'rgba(33, 58, 51, 0.08)' } }
-        }
+    if (typeof Chart === 'undefined') {
+        return;
     }
-});
 
-new Chart(document.getElementById('subcategoryExpenseChart'), {
-    type: 'bar',
-    data: {
-        labels: {{ subcategory_chart_data.labels|safe }},
-        datasets: [{ label: 'Valor', data: {{ subcategory_chart_data.values|safe }}, backgroundColor: '#c3a96a', borderRadius: 10 }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        indexAxis: 'y',
-        plugins: { legend: { labels: { color: '#182b25' } } },
-        scales: {
-            x: { ticks: { color: '#2d4b42' }, grid: { color: 'rgba(33, 58, 51, 0.08)' } },
-            y: { ticks: { color: '#2d4b42' }, grid: { display: false } }
-        }
+    const expenseChart = document.getElementById('expenseChart');
+    if (expenseChart) {
+        new Chart(expenseChart, {
+            type: 'bar',
+            data: {
+                labels: {{ chart_data.labels|safe }},
+                datasets: [{ label: 'Valor', data: {{ chart_data.values|safe }}, backgroundColor: '#ea580c', borderRadius: 10 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#475569' } } },
+                scales: {
+                    x: { ticks: { color: '#64748b' }, grid: { display: false } },
+                    y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(148, 163, 184, 0.2)' } }
+                }
+            }
+        });
+    }
+
+    const subcategoryExpenseChart = document.getElementById('subcategoryExpenseChart');
+    if (subcategoryExpenseChart) {
+        new Chart(subcategoryExpenseChart, {
+            type: 'bar',
+            data: {
+                labels: {{ subcategory_chart_data.labels|safe }},
+                datasets: [{ label: 'Valor', data: {{ subcategory_chart_data.values|safe }}, backgroundColor: '#dc2626', borderRadius: 10 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: { legend: { labels: { color: '#475569' } } },
+                scales: {
+                    x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(148, 163, 184, 0.2)' } },
+                    y: { ticks: { color: '#64748b' }, grid: { display: false } }
+                }
+            }
+        });
     }
 });
 </script>

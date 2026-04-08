@@ -2,41 +2,88 @@
 {% load crispy_forms_tags finance_extras %}
 
 {% block page_title %}Lancamento de Faturamento{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Distribua a receita do dia entre meios de pagamento e categorias de faturamento.</p>{% endblock %}
 
 {% block content %}
-<div class="card shadow-sm border-0">
+<div class="form-masthead">
+    <div class="form-masthead-main">
+        <span class="eyebrow">Faturamento</span>
+        <h3 class="form-masthead-title">Lancamento diario com visao operacional</h3>
+        <p class="metric-copy mb-0">Distribua rapidamente os valores por meio de pagamento e categoria de receita, com melhor leitura do que impacta o ticket medio.</p>
+    </div>
+    <div class="form-masthead-side">
+        <div class="form-feature-grid">
+            <div class="form-feature-card">
+                <span class="eyebrow">Entrada</span>
+                <strong>6 meios de pagamento</strong>
+            </div>
+            <div class="form-feature-card">
+                <span class="eyebrow">Analise</span>
+                <strong>Ticket medio em tempo real</strong>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card border-0">
     <div class="card-body">
         <form method="post">
             {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="alert alert-warning">{{ form.non_field_errors }}</div>
+            {% endif %}
 
-            <div class="row g-3">
-                <div class="col-md-4">{{ form.data|as_crispy_field }}</div>
-                <div class="col-md-4">{{ form.valor_dinheiro|as_crispy_field }}</div>
-                <div class="col-md-4">{{ form.valor_pix|as_crispy_field }}</div>
-                <div class="col-md-4">{{ form.valor_credito|as_crispy_field }}</div>
-                <div class="col-md-4">{{ form.valor_debito|as_crispy_field }}</div>
-                <div class="col-md-4">{{ form.valor_fiado|as_crispy_field }}</div>
-                <div class="col-md-4">{{ form.valor_vale|as_crispy_field }}</div>
-                <div class="col-12">
-                    <div class="form-text mb-2">Categorias do faturamento diario. Esses valores classificam a origem da receita e a soma deles nao pode passar do total do dia.</div>
-                </div>
-                <div class="col-md-4">{{ form.faturamento_bar|as_crispy_field }}</div>
-                <div class="col-md-4">{{ form.faturamento_cozinha|as_crispy_field }}</div>
-                <div class="col-md-4">{{ form.faturamento_produtos|as_crispy_field }}</div>
-                <div class="col-md-4">{{ form.faturamento_outros|as_crispy_field }}</div>
-                <div class="col-12">{{ form.observacao|as_crispy_field }}</div>
+            <div class="form-shell">
+                <section class="form-panel">
+                    <div class="form-panel-header">
+                        <span class="eyebrow">Movimento</span>
+                        <h3 class="form-panel-title">Resumo do dia</h3>
+                    </div>
+                    <div class="row form-grid-tight">
+                        <div class="col-md-4">{{ form.data|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.quantidade_pessoas|as_crispy_field }}</div>
+                        <div class="col-md-4">
+                            <label class="form-label">Ticket medio do dia</label>
+                            <div class="form-control form-inline-value d-flex align-items-center" id="ticketMedioDia">R$ 0,00</div>
+                            <div class="form-text">Calculado apenas quando a quantidade de pessoas for preenchida.</div>
+                        </div>
+                    </div>
+                </section>
 
-                <div class="col-md-4">
-                    {{ form.quantidade_pessoas|as_crispy_field }}
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Ticket medio do dia</label>
-                    <div class="form-control bg-light" id="ticketMedioDia">R$ 0,00</div>
-                    <div class="form-text">Calculado apenas quando a quantidade de pessoas for preenchida.</div>
-                </div>
+                <section class="form-panel">
+                    <div class="form-panel-header">
+                        <span class="eyebrow">Pagamentos</span>
+                        <h3 class="form-panel-title">Entradas por meio de pagamento</h3>
+                    </div>
+                    <div class="row form-grid-tight">
+                        <div class="col-md-4">{{ form.valor_dinheiro|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.valor_pix|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.valor_credito|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.valor_debito|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.valor_fiado|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.valor_vale|as_crispy_field }}</div>
+                    </div>
+                </section>
+
+                <section class="form-panel">
+                    <div class="form-panel-header">
+                        <span class="eyebrow">Categorias</span>
+                        <h3 class="form-panel-title">Origem da receita</h3>
+                    </div>
+                    <div class="surface-note mb-3">
+                        <span class="eyebrow">Regras</span>
+                        <div class="mt-1">A soma de bar, cozinha, produtos e outros nao pode ultrapassar o total informado nos pagamentos.</div>
+                    </div>
+                    <div class="row form-grid-tight">
+                        <div class="col-md-3">{{ form.faturamento_bar|as_crispy_field }}</div>
+                        <div class="col-md-3">{{ form.faturamento_cozinha|as_crispy_field }}</div>
+                        <div class="col-md-3">{{ form.faturamento_produtos|as_crispy_field }}</div>
+                        <div class="col-md-3">{{ form.faturamento_outros|as_crispy_field }}</div>
+                        <div class="col-12">{{ form.observacao|as_crispy_field }}</div>
+                    </div>
+                </section>
             </div>
 
-            <div class="d-flex gap-2 mt-4">
+            <div class="form-actions">
                 <button class="btn btn-primary" type="submit">Salvar</button>
                 <a class="btn btn-outline-secondary" href="{% url 'faturamento:list' %}">Cancelar</a>
             </div>

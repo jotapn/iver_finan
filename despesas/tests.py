@@ -5,7 +5,13 @@ from django.test import TestCase
 from cadastros.models import Banco, CategoriaDeSpesa, FormaPagamento, SubcategoriaDeSpesa
 
 from .models import Despesa
-from .services import create_or_update_recurrence, expense_summary_by_category, generate_recurring_expenses_until
+from .services import (
+    create_or_update_recurrence,
+    expense_period_choices,
+    expense_summary_by_category,
+    generate_recurring_expenses_until,
+    grouped_subcategory_options,
+)
 
 
 class DespesaTests(TestCase):
@@ -82,3 +88,62 @@ class DespesaTests(TestCase):
         generate_recurring_expenses_until(2025, 3)
 
         self.assertEqual(Despesa.objects.filter(recorrencia=recorrencia).count(), 1)
+
+    def test_generate_recurring_expenses_is_idempotent(self):
+        despesa = Despesa.objects.create(
+            descricao="Internet",
+            categoria=self.categoria,
+            subcategoria=self.subcategoria,
+            valor=150,
+            data_vencimento=date(2025, 1, 10),
+            forma_pagamento=self.forma,
+            banco=self.banco,
+            mes_referencia=1,
+            ano_referencia=2025,
+        )
+        recorrencia = create_or_update_recurrence(
+            despesa,
+            recorrente=True,
+            recorrencia_ativa=True,
+            recorrencia_data_fim=date(2025, 3, 31),
+        )
+
+        generate_recurring_expenses_until(2025, 4)
+        generate_recurring_expenses_until(2025, 4)
+
+        self.assertEqual(Despesa.objects.filter(recorrencia=recorrencia).count(), 3)
+
+    def test_grouped_subcategory_options_uses_single_map(self):
+        outra_categoria = CategoriaDeSpesa.objects.create(nome="Administrativo")
+        outra_subcategoria = SubcategoriaDeSpesa.objects.create(nome="Telefone", categoria=outra_categoria)
+
+        options = grouped_subcategory_options()
+
+        self.assertEqual(options[str(self.categoria.id)][0]["nome"], self.subcategoria.nome)
+        self.assertEqual(options[str(outra_categoria.id)][0]["nome"], outra_subcategoria.nome)
+
+    def test_expense_period_choices_returns_sorted_periods(self):
+        Despesa.objects.create(
+            descricao="Luz",
+            categoria=self.categoria,
+            subcategoria=self.subcategoria,
+            valor=100,
+            data_pagamento=date(2025, 2, 5),
+            forma_pagamento=self.forma,
+            banco=self.banco,
+            mes_referencia=1,
+            ano_referencia=2025,
+        )
+        Despesa.objects.create(
+            descricao="Agua",
+            categoria=self.categoria,
+            subcategoria=self.subcategoria,
+            valor=120,
+            data_pagamento=date(2025, 3, 5),
+            forma_pagamento=self.forma,
+            banco=self.banco,
+            mes_referencia=2,
+            ano_referencia=2025,
+        )
+
+        self.assertEqual(expense_period_choices()[:2], [("2025-02", "Fevereiro/2025"), ("2025-01", "Janeiro/2025")])

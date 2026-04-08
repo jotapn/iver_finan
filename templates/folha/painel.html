@@ -2,16 +2,24 @@
 {% load finance_extras %}
 
 {% block page_title %}Folha {{ periodo }}{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Acompanhe pagamentos, produtividade, beneficios e historico por colaborador.</p>{% endblock %}
 
 {% block content %}
-<div class="d-flex gap-2 mb-3">
-    <a class="btn btn-outline-secondary btn-sm" href="{% url 'folha:index' %}">Voltar</a>
-    <a class="btn btn-outline-primary btn-sm" href="{% url 'folha:create-benefit' periodo.ano periodo.mes %}">Novo beneficio</a>
+<div class="toolbar-card mb-4">
+    <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'folha:index' %}">Voltar</a>
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'folha:create-benefit' periodo.ano periodo.mes %}">Novo beneficio</a>
+    </div>
 </div>
 
-<div class="card shadow-sm border-0 mb-4">
+<div class="card border-0 mb-4">
     <div class="card-body">
-        <h3 class="h6">Lancamentos dos colaboradores</h3>
+        <div class="section-heading mb-3">
+            <div>
+                <span class="eyebrow">Lancamentos</span>
+                <h3>Colaboradores</h3>
+            </div>
+        </div>
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead>
@@ -114,9 +122,7 @@
                             </td>
                             <td><strong>{{ lancamento.total_recebido|brl }}</strong></td>
                             <td class="text-end">
-                                <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#edit-modal-{{ lancamento.pk }}">
-                                    Ajustar
-                                </button>
+                                <a class="btn btn-outline-primary btn-sm" href="{% url 'folha:update-lancamento' periodo.ano periodo.mes lancamento.pk %}">Ajustar</a>
                                 <a class="btn btn-outline-secondary btn-sm" href="{% url 'folha:history' periodo.ano periodo.mes lancamento.colaborador.pk %}">Historico</a>
                             </td>
                         </tr>
@@ -128,101 +134,4 @@
         </div>
     </div>
 </div>
-
-{% for lancamento in lancamentos %}
-    <div class="modal fade" id="edit-modal-{{ lancamento.pk }}" tabindex="-1" aria-labelledby="edit-modal-label-{{ lancamento.pk }}" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <form method="post" action="{% url 'folha:update-lancamento' periodo.ano periodo.mes lancamento.pk %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="inline" value="1">
-                    <div class="modal-header">
-                        <div>
-                            <h5 class="modal-title" id="edit-modal-label-{{ lancamento.pk }}">Ajustar {{ lancamento.colaborador.nome }}</h5>
-                            <small class="text-muted">{{ lancamento.colaborador.cargo.setor.nome }}</small>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-3">
-                                <div class="border rounded p-2 bg-light">
-                                    <div class="small text-muted">Salario bruto</div>
-                                    <strong>{{ lancamento.salario_bruto|brl }}</strong>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="border rounded p-2 bg-light">
-                                    <div class="small text-muted">Adiantamento fixo</div>
-                                    <strong>{{ lancamento.adiantamento_valor|brl }}</strong>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="border rounded p-2 bg-light">
-                                    <div class="small text-muted">Base do saldo</div>
-                                    <strong>{{ lancamento.saldo_salario_base|brl }}</strong>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="border rounded p-2 bg-light">
-                                    <div class="small text-muted">Beneficios</div>
-                                    <strong>{{ lancamento.total_beneficios|brl }}</strong>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label small mb-1" for="{{ lancamento.inline_form.adiantamento_data.id_for_label }}">Data do adiantamento</label>
-                                {{ lancamento.inline_form.adiantamento_data }}
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label small mb-1" for="{{ lancamento.inline_form.consumo_colaborador.id_for_label }}">Consumo do colaborador</label>
-                                {{ lancamento.inline_form.consumo_colaborador }}
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label small mb-1" for="{{ lancamento.inline_form.descontos.id_for_label }}">Descontos</label>
-                                {{ lancamento.inline_form.descontos }}
-                            </div>
-                            <div class="col-md-4">
-                                <div class="border rounded p-2 bg-light h-100">
-                                    <div class="small text-muted">Saldo final sugerido</div>
-                                    <strong>{{ lancamento.saldo_final_sugerido|brl }}</strong>
-                                    <div><small class="text-muted">60% do bruto menos consumo e descontos</small></div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label small mb-1" for="{{ lancamento.inline_form.saldo_final_data.id_for_label }}">Data do saldo final</label>
-                                {{ lancamento.inline_form.saldo_final_data }}
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label small mb-1" for="{{ lancamento.inline_form.produtividade_1_valor.id_for_label }}">Prod. 1 valor</label>
-                                {{ lancamento.inline_form.produtividade_1_valor }}
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label small mb-1" for="{{ lancamento.inline_form.produtividade_1_data.id_for_label }}">Prod. 1 data</label>
-                                {{ lancamento.inline_form.produtividade_1_data }}
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label small mb-1" for="{{ lancamento.inline_form.produtividade_2_valor.id_for_label }}">Prod. 2 valor</label>
-                                {{ lancamento.inline_form.produtividade_2_valor }}
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label small mb-1" for="{{ lancamento.inline_form.produtividade_2_data.id_for_label }}">Prod. 2 data</label>
-                                {{ lancamento.inline_form.produtividade_2_data }}
-                            </div>
-                            <div class="col-12">
-                                <div class="small text-muted">O adiantamento permanece fixo em 40% do salario bruto. O saldo final e calculado automaticamente a partir da base de 60% menos o consumo do colaborador e os descontos informados manualmente.</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button class="btn btn-primary" type="submit">Salvar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-{% endfor %}
-
 {% endblock %}

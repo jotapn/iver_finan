@@ -2,14 +2,52 @@
 {% load crispy_forms_tags %}
 
 {% block page_title %}{% if object %}Editar usuario{% else %}Novo usuario{% endif %}{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Configure acesso, status e dados vinculados do usuario com uma distribuicao mais clara.</p>{% endblock %}
 
 {% block content %}
-<div class="card shadow-sm border-0">
+<div class="card border-0">
     <div class="card-body">
         <form method="post">
             {% csrf_token %}
-            {{ form|crispy }}
-            <div class="d-flex gap-2">
+            {% if form.non_field_errors %}
+                <div class="alert alert-warning">{{ form.non_field_errors }}</div>
+            {% endif %}
+            <div class="form-shell">
+                <section class="form-panel">
+                    <div class="form-panel-header">
+                        <span class="eyebrow">Conta</span>
+                        <h3 class="form-panel-title">Acesso ao sistema</h3>
+                    </div>
+                    <div class="row form-grid-tight">
+                        <div class="col-md-4">{{ form.username|as_crispy_field }}</div>
+                        <div class="col-md-5">{{ form.email|as_crispy_field }}</div>
+                        <div class="col-md-3">{{ form.is_active|as_crispy_field }}</div>
+                        {% if form.password1 %}
+                            <div class="col-md-6">{{ form.password1|as_crispy_field }}</div>
+                            <div class="col-md-6">{{ form.password2|as_crispy_field }}</div>
+                        {% endif %}
+                        {% if form.nova_senha %}
+                            <div class="col-md-6">{{ form.nova_senha|as_crispy_field }}</div>
+                            <div class="col-md-6">{{ form.confirmar_nova_senha|as_crispy_field }}</div>
+                        {% endif %}
+                    </div>
+                </section>
+
+                <section class="form-panel">
+                    <div class="form-panel-header">
+                        <span class="eyebrow">Perfil</span>
+                        <h3 class="form-panel-title">Dados vinculados</h3>
+                    </div>
+                    <div class="row form-grid-tight">
+                        <div class="col-md-4">{{ form.perfil_acesso|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.nome_completo|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.telefone|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.cargo|as_crispy_field }}</div>
+                        <div class="col-12">{{ form.observacao|as_crispy_field }}</div>
+                    </div>
+                </section>
+            </div>
+            <div class="form-actions">
                 <button class="btn btn-primary" type="submit">Salvar</button>
                 <a class="btn btn-outline-secondary" href="{% url 'usuarios:list' %}">Cancelar</a>
             </div>

@@ -3,38 +3,43 @@
 
 {% block title %}Dashboard | IVER{% endblock %}
 {% block page_title %}Painel Financeiro{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Visao consolidada do mes com faturamento, despesas, folha e pendencias operacionais.</p>{% endblock %}
 
 {% block content %}
 <div class="row g-4 mb-4">
     <div class="col-md-6 col-xl-3">
-        <div class="card shadow-sm border-0 card-summary">
+        <div class="card border-0 card-summary metric-card h-100">
             <div class="card-body">
-                <p class="text-muted mb-2">Faturamento Bruto do Mês</p>
-                <h3>{{ resumo_mes.faturamento_bruto|brl }}</h3>
+                <span class="label">Receita</span>
+                <div class="value">{{ resumo_mes.faturamento_bruto|brl }}</div>
+                <p class="metric-copy mb-0 mt-2">Faturamento bruto do mes em acompanhamento.</p>
             </div>
         </div>
     </div>
     <div class="col-md-6 col-xl-3">
-        <div class="card shadow-sm border-0 card-summary">
+        <div class="card border-0 card-summary metric-card h-100">
             <div class="card-body">
-                <p class="text-muted mb-2">Despesas do Mês</p>
-                <h3>{{ resumo_mes.despesas|brl }}</h3>
+                <span class="label">Despesas</span>
+                <div class="value">{{ resumo_mes.despesas|brl }}</div>
+                <p class="metric-copy mb-0 mt-2">Saidas financeiras registradas no periodo atual.</p>
             </div>
         </div>
     </div>
     <div class="col-md-6 col-xl-3">
-        <div class="card shadow-sm border-0 card-summary">
+        <div class="card border-0 card-summary metric-card h-100">
             <div class="card-body">
-                <p class="text-muted mb-2">Saldo Líquido</p>
-                <h3>{{ resumo_mes.saldo|brl }}</h3>
+                <span class="label">Saldo</span>
+                <div class="value">{{ resumo_mes.saldo|brl }}</div>
+                <p class="metric-copy mb-0 mt-2">Resultado liquido apos despesas e custos recorrentes.</p>
             </div>
         </div>
     </div>
     <div class="col-md-6 col-xl-3">
-        <div class="card shadow-sm border-0 card-summary">
+        <div class="card border-0 card-summary metric-card h-100">
             <div class="card-body">
-                <p class="text-muted mb-2">Total da Folha</p>
-                <h3>{{ resumo_mes.folha|brl }}</h3>
+                <span class="label">Folha</span>
+                <div class="value">{{ resumo_mes.folha|brl }}</div>
+                <p class="metric-copy mb-0 mt-2">Compromisso atual com folha e beneficios do mes.</p>
             </div>
         </div>
     </div>
@@ -42,12 +47,15 @@
 
 <div class="row g-4">
     <div class="col-lg-8">
-        <div class="card shadow-sm border-0">
+        <div class="card border-0">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h3 class="h6 mb-0">Faturamento vs Despesas</h3>
-                    <div class="d-flex gap-2">
-                        <a class="btn btn-primary btn-sm" href="{% url 'faturamento:create' %}">Lançar faturamento</a>
+                <div class="section-heading mb-4">
+                    <div>
+                        <span class="eyebrow">Analise mensal</span>
+                        <h3>Faturamento vs despesas</h3>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a class="btn btn-primary btn-sm" href="{% url 'faturamento:create' %}">Lancar faturamento</a>
                         <a class="btn btn-outline-primary btn-sm" href="{% url 'despesas:create' %}">Nova despesa</a>
                     </div>
                 </div>
@@ -58,29 +66,41 @@
         </div>
     </div>
     <div class="col-lg-4">
-        <div class="card shadow-sm border-0 mb-4">
+        <div class="card border-0 mb-4">
             <div class="card-body">
-                <h3 class="h6">Despesas a vencer em 7 dias</h3>
-                <ul class="list-group list-group-flush">
+                <span class="eyebrow">Monitoramento</span>
+                <h3 class="h5 mt-2">Despesas a vencer em 7 dias</h3>
+                <ul class="list-group list-group-flush mt-3">
                     {% for despesa in despesas_vencer %}
-                        <li class="list-group-item px-0 d-flex justify-content-between">
+                        <li class="list-group-item px-0 d-flex justify-content-between gap-3">
                             <span>{{ despesa.descricao }}</span>
                             <strong>{{ despesa.valor|brl }}</strong>
                         </li>
                     {% empty %}
-                        <li class="list-group-item px-0">Nenhuma despesa próxima do vencimento.</li>
+                        <li class="list-group-item px-0">Nenhuma despesa proxima do vencimento.</li>
                     {% endfor %}
                 </ul>
             </div>
         </div>
-        <div class="card shadow-sm border-0">
+        <div class="card border-0">
             <div class="card-body">
-                <h3 class="h6">Pagamentos pendentes da folha</h3>
-                <ul class="list-group list-group-flush">
+                <span class="eyebrow">Folha</span>
+                <h3 class="h5 mt-2">Pagamentos pendentes</h3>
+                {% if periodos_folha_pendentes %}
+                    <p class="metric-copy mb-0">Periodos com pendencia: {{ periodos_folha_pendentes|join:", " }}</p>
+                {% else %}
+                    <p class="metric-copy mb-0">Nenhum periodo com pendencia em aberto.</p>
+                {% endif %}
+                <ul class="list-group list-group-flush mt-3">
                     {% for item in pendencias_folha %}
-                        <li class="list-group-item px-0">{{ item.colaborador }} - {{ item.tipo }}</li>
+                        <li class="list-group-item px-0">
+                            <a href="{% url 'folha:detail' item.ano item.mes %}" class="text-decoration-none">
+                                <strong>{{ item.periodo }}</strong>
+                            </a>
+                            - {{ item.colaborador }} - {{ item.tipo }}
+                        </li>
                     {% empty %}
-                        <li class="list-group-item px-0">Nenhuma pendência no mês atual.</li>
+                        <li class="list-group-item px-0">Nenhuma pendencia na folha.</li>
                     {% endfor %}
                 </ul>
             </div>
@@ -89,27 +109,37 @@
 </div>
 {% endblock %}
 
+{% block vendor_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
 {% block extra_js %}
 <script>
-const ctx = document.getElementById('overviewChart');
-new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: {{ chart_data.labels|safe }},
-        datasets: [
-            { label: 'Faturamento', data: {{ chart_data.faturamento|safe }}, backgroundColor: '#213a33', borderRadius: 10 },
-            { label: 'Despesas', data: {{ chart_data.despesas|safe }}, backgroundColor: '#cdbd9d', borderRadius: 10 }
-        ]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: '#182b25' } } },
-        scales: {
-            x: { ticks: { color: '#2d4b42' }, grid: { display: false } },
-            y: { ticks: { color: '#2d4b42' }, grid: { color: 'rgba(33, 58, 51, 0.08)' } }
-        }
+document.addEventListener('DOMContentLoaded', function () {
+    const ctx = document.getElementById('overviewChart');
+    if (!ctx || typeof Chart === 'undefined') {
+        return;
     }
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ chart_data.labels|safe }},
+            datasets: [
+                { label: 'Faturamento', data: {{ chart_data.faturamento|safe }}, backgroundColor: '#0d9488', borderRadius: 10 },
+                { label: 'Despesas', data: {{ chart_data.despesas|safe }}, backgroundColor: '#f97316', borderRadius: 10 }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#475569' } } },
+            scales: {
+                x: { ticks: { color: '#64748b' }, grid: { display: false } },
+                y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(148, 163, 184, 0.2)' } }
+            }
+        }
+    });
 });
 </script>
 {% endblock %}

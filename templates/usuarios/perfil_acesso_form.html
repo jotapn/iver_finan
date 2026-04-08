@@ -2,14 +2,35 @@
 {% load crispy_forms_tags %}
 
 {% block page_title %}{% if object %}Editar perfil de acesso{% else %}Novo perfil de acesso{% endif %}{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Monte um pacote de permissoes mais legivel para distribuir acessos no sistema.</p>{% endblock %}
 
 {% block content %}
-<div class="card shadow-sm border-0">
+<div class="card border-0">
     <div class="card-body">
         <form method="post">
             {% csrf_token %}
-            {{ form|crispy }}
-            <div class="d-flex gap-2">
+            <div class="form-shell">
+                <section class="form-panel">
+                    <div class="form-panel-header">
+                        <span class="eyebrow">Perfil</span>
+                        <h3 class="form-panel-title">Identificacao e permissoes</h3>
+                    </div>
+                    <div class="row form-grid-tight">
+                        <div class="col-md-6">{{ form.nome|as_crispy_field }}</div>
+                    </div>
+                    <div class="permission-grid mt-3">
+                        <div class="permission-item">{{ form.ver_dashboard|as_crispy_field }}</div>
+                        <div class="permission-item">{{ form.ver_cadastros|as_crispy_field }}</div>
+                        <div class="permission-item">{{ form.ver_faturamento|as_crispy_field }}</div>
+                        <div class="permission-item">{{ form.ver_despesas|as_crispy_field }}</div>
+                        <div class="permission-item">{{ form.ver_folha|as_crispy_field }}</div>
+                        <div class="permission-item">{{ form.ver_dre|as_crispy_field }}</div>
+                        <div class="permission-item">{{ form.ver_usuarios|as_crispy_field }}</div>
+                        <div class="permission-item">{{ form.ver_admin|as_crispy_field }}</div>
+                    </div>
+                </section>
+            </div>
+            <div class="form-actions">
                 <button class="btn btn-primary" type="submit">Salvar</button>
                 <a class="btn btn-outline-secondary" href="{% url 'usuarios:access-profile-list' %}">Cancelar</a>
             </div>

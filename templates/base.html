@@ -6,36 +6,102 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}IVER Financeiro{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css2_19fd9cc6b396.css' %}">
+    <link rel="stylesheet" href="{% static 'css2_0b2072b66163.css' %}">
+    <link rel="stylesheet" href="{% static 'css2_f495c2faa2a6.css' %}">
     <link rel="stylesheet" href="{% static 'css/custom.css' %}">
 </head>
 <body>
     <div class="d-flex min-vh-100">
         {% if request.user.is_authenticated %}
-            <aside class="sidebar p-4 text-white">
-                <h1 class="h4 mb-4">IVER</h1>
+            <aside class="sidebar p-4">
+                <div class="sidebar-header">
+                    <h1 class="h4 mb-0 sidebar-title">IVER</h1>
+                    <button
+                        class="btn btn-outline-secondary btn-sm sidebar-collapse-btn"
+                        type="button"
+                        id="sidebarCollapseBtn"
+                        aria-label="Minimizar menu lateral"
+                        aria-pressed="false"
+                    >
+                        <span class="sidebar-collapse-open">←</span>
+                        <span class="sidebar-collapse-closed">→</span>
+                    </button>
+                </div>
                 <nav class="nav flex-column gap-2">
-                    {% if module_access.dashboard %}<a class="nav-link text-white" href="{% url 'dashboard' %}">Dashboard</a>{% endif %}
-                    {% if module_access.faturamento %}<a class="nav-link text-white" href="{% url 'faturamento:list' %}">Faturamento</a>{% endif %}
-                    {% if module_access.despesas %}<a class="nav-link text-white" href="{% url 'despesas:list' %}">Despesas</a>{% endif %}
-                    {% if module_access.folha %}<a class="nav-link text-white" href="{% url 'folha:index' %}">Folha</a>{% endif %}
-                    {% if module_access.dre %}<a class="nav-link text-white" href="{% url 'dre:index' %}">DRE</a>{% endif %}
+                    {% if module_access.dashboard %}
+                        <a class="nav-link sidebar-link {% if request.path == '/' %}active{% endif %}" href="{% url 'dashboard' %}" title="Dashboard">
+                            <span class="sidebar-link-inner">
+                                <span class="sidebar-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="8" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="15" width="7" height="6" rx="1.5"></rect></svg>
+                                </span>
+                                <span class="sidebar-label">Dashboard</span>
+                            </span>
+                        </a>
+                    {% endif %}
+                    {% if module_access.faturamento %}
+                        <a class="nav-link sidebar-link {% if '/faturamento/' in request.path %}active{% endif %}" href="{% url 'faturamento:list' %}" title="Faturamento">
+                            <span class="sidebar-link-inner">
+                                <span class="sidebar-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16"></path><path d="M7 16V9"></path><path d="M12 16V5"></path><path d="M17 16v-4"></path></svg>
+                                </span>
+                                <span class="sidebar-label">Faturamento</span>
+                            </span>
+                        </a>
+                    {% endif %}
+                    {% if module_access.despesas %}
+                        <a class="nav-link sidebar-link {% if '/despesas/' in request.path %}active{% endif %}" href="{% url 'despesas:list' %}" title="Despesas">
+                            <span class="sidebar-link-inner">
+                                <span class="sidebar-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H8a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12"></path><path d="M16 7V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v10"></path><path d="M18 12h.01"></path></svg>
+                                </span>
+                                <span class="sidebar-label">Despesas</span>
+                            </span>
+                        </a>
+                    {% endif %}
+                    {% if module_access.folha %}
+                        <a class="nav-link sidebar-link {% if '/folha/' in request.path %}active{% endif %}" href="{% url 'folha:index' %}" title="Folha">
+                            <span class="sidebar-link-inner">
+                                <span class="sidebar-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8"></path><path d="M9 3v4"></path><path d="M15 3v4"></path><rect x="4" y="7" width="16" height="14" rx="2"></rect><path d="M8 11h8"></path><path d="M8 15h5"></path></svg>
+                                </span>
+                                <span class="sidebar-label">Folha</span>
+                            </span>
+                        </a>
+                    {% endif %}
+                    {% if module_access.dre %}
+                        <a class="nav-link sidebar-link {% if '/dre/' in request.path %}active{% endif %}" href="{% url 'dre:index' %}" title="DRE">
+                            <span class="sidebar-link-inner">
+                                <span class="sidebar-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19V9"></path><path d="M12 19V5"></path><path d="M19 19v-8"></path></svg>
+                                </span>
+                                <span class="sidebar-label">DRE</span>
+                            </span>
+                        </a>
+                    {% endif %}
                     {% if module_access.cadastros %}
                         <div class="sidebar-group">
                             <button
-                                class="nav-link text-white w-100 text-start d-flex justify-content-between align-items-center sidebar-toggle {% if '/cadastros/' in request.path %}active{% endif %}"
+                                class="nav-link sidebar-link sidebar-toggle w-100 text-start d-flex justify-content-between align-items-center {% if '/cadastros/' in request.path %}active{% endif %}"
                                 type="button"
                                 data-bs-toggle="collapse"
                                 data-bs-target="#cadastrosMenu"
                                 aria-expanded="{% if '/cadastros/' in request.path %}true{% else %}false{% endif %}"
                                 aria-controls="cadastrosMenu"
+                                title="Cadastros"
                             >
-                                <span>Cadastros</span>
-                                <span class="small">+</span>
+                                <span class="sidebar-link-inner">
+                                    <span class="sidebar-icon" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"></path></svg>
+                                    </span>
+                                    <span class="sidebar-label">Cadastros</span>
+                                </span>
+                                <span class="small sidebar-plus">+</span>
                             </button>
                             <div class="collapse sidebar-submenu {% if '/cadastros/' in request.path %}show{% endif %}" id="cadastrosMenu">
-                                <a class="nav-link text-white submenu-link" href="{% url 'cadastros:index' %}">Visao geral</a>
+                                <a class="nav-link submenu-link" href="{% url 'cadastros:index' %}">Visao geral</a>
                                 {% for slug, item in sidebar_cadastros.items %}
-                                    <a class="nav-link text-white submenu-link" href="{% url 'cadastros:list' slug %}">{{ item.title }}</a>
+                                    <a class="nav-link submenu-link" href="{% url 'cadastros:list' slug %}">{{ item.title }}</a>
                                 {% endfor %}
                             </div>
                         </div>
@@ -43,54 +109,242 @@
                     {% if module_access.usuarios or module_access.admin %}
                         <div class="sidebar-group">
                             <button
-                                class="nav-link text-white w-100 text-start d-flex justify-content-between align-items-center sidebar-toggle {% if '/usuarios/' in request.path or '/admin/' in request.path %}active{% endif %}"
+                                class="nav-link sidebar-link sidebar-toggle w-100 text-start d-flex justify-content-between align-items-center {% if '/usuarios/' in request.path or '/admin/' in request.path %}active{% endif %}"
                                 type="button"
                                 data-bs-toggle="collapse"
                                 data-bs-target="#configuracoesMenu"
                                 aria-expanded="{% if '/usuarios/' in request.path or '/admin/' in request.path %}true{% else %}false{% endif %}"
                                 aria-controls="configuracoesMenu"
+                                title="Configuracoes"
                             >
-                                <span>Configuracoes</span>
-                                <span class="small">+</span>
+                                <span class="sidebar-link-inner">
+                                    <span class="sidebar-icon" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.04 1.55V21a2 2 0 0 1-4 0v-.09a1.7 1.7 0 0 0-1.04-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1.04H3a2 2 0 0 1 0-4h.09A1.7 1.7 0 0 0 4.64 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1-1.54V3a2 2 0 0 1 4 0v.09a1.7 1.7 0 0 0 1.04 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9c0 .66.39 1.26 1 1.52.18.07.37.11.56.11H21a2 2 0 0 1 0 4h-.09c-.66 0-1.26.39-1.51.99z"></path></svg>
+                                    </span>
+                                    <span class="sidebar-label">Configuracoes</span>
+                                </span>
+                                <span class="small sidebar-plus">+</span>
                             </button>
                             <div class="collapse sidebar-submenu {% if '/usuarios/' in request.path or '/admin/' in request.path %}show{% endif %}" id="configuracoesMenu">
                                 {% if module_access.usuarios %}
-                                    <a class="nav-link text-white submenu-link" href="{% url 'usuarios:index' %}">Visao geral</a>
-                                    <a class="nav-link text-white submenu-link" href="{% url 'usuarios:list' %}">Usuarios</a>
-                                    <a class="nav-link text-white submenu-link" href="{% url 'usuarios:access-profile-list' %}">Perfis</a>
+                                    <a class="nav-link submenu-link" href="{% url 'usuarios:index' %}">Visao geral</a>
+                                    <a class="nav-link submenu-link" href="{% url 'usuarios:list' %}">Usuarios</a>
+                                    <a class="nav-link submenu-link" href="{% url 'usuarios:access-profile-list' %}">Perfis</a>
                                 {% endif %}
                                 {% if module_access.admin %}
-                                    <a class="nav-link text-white submenu-link" href="{% url 'admin:index' %}">Admin</a>
+                                    <a class="nav-link submenu-link" href="{% url 'admin:index' %}">Admin</a>
                                 {% endif %}
                             </div>
                         </div>
                     {% endif %}
                     <form method="post" action="{% url 'logout' %}">
                         {% csrf_token %}
-                        <button class="btn btn-outline-light btn-sm mt-3" type="submit">Sair</button>
+                        <button class="btn btn-outline-light btn-sm mt-4 w-100" type="submit">Sair</button>
                     </form>
                 </nav>
+                <div class="sidebar-footer">
+                    <span class="eyebrow">Operacao</span>
+                    <strong>{{ request.user.username }}</strong>
+                </div>
             </aside>
         {% endif %}
-        <main class="flex-grow-1">
-            <header class="border-bottom bg-white px-4 py-3 d-flex justify-content-between align-items-center">
-                <div>
-                    <h2 class="h5 mb-0">{% block page_title %}Painel{% endblock %}</h2>
-                </div>
-                {% if request.user.is_authenticated %}
-                    <span class="text-muted small">{{ request.user.username }}</span>
-                {% endif %}
-            </header>
-            <div class="container-fluid p-4">
+        <main class="flex-grow-1 d-flex flex-column min-vh-100">
+            {% if request.user.is_authenticated %}
+                <header class="border-bottom bg-white px-4 py-3 d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                    <div class="topbar-copy">
+                        <span class="eyebrow">Painel financeiro</span>
+                        <h2 class="page-title">{% block page_title %}Painel{% endblock %}</h2>
+                        {% block page_subtitle %}{% endblock %}
+                    </div>
+                    <div class="topbar-user">
+                        <span class="status-dot"></span>
+                        <span>{{ request.user.username }}</span>
+                    </div>
+                </header>
+            {% endif %}
+            <div class="{% if request.user.is_authenticated %}container-fluid p-4 flex-grow-1{% else %}auth-shell{% endif %}">
                 {% for message in messages %}
-                    <div class="alert alert-info">{{ message }}</div>
+                    <div class="alert alert-info app-alert">{{ message }}</div>
                 {% endfor %}
                 {% block content %}{% endblock %}
             </div>
         </main>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    {% block vendor_js %}{% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" defer></script>
+    {% if request.user.is_authenticated %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const collapseBtn = document.getElementById('sidebarCollapseBtn');
+        const sidebarToggleButtons = document.querySelectorAll('.sidebar-toggle');
+        const storageKey = 'iver-sidebar-collapsed';
+
+        if (!collapseBtn) {
+            return;
+        }
+
+        function applyState(collapsed) {
+            document.body.classList.toggle('sidebar-collapsed', collapsed);
+            collapseBtn.setAttribute('aria-pressed', collapsed ? 'true' : 'false');
+        }
+
+        applyState(window.localStorage.getItem(storageKey) === 'true');
+
+        collapseBtn.addEventListener('click', function () {
+            const collapsed = !document.body.classList.contains('sidebar-collapsed');
+            applyState(collapsed);
+            window.localStorage.setItem(storageKey, collapsed ? 'true' : 'false');
+        });
+
+        sidebarToggleButtons.forEach(function (button) {
+            button.addEventListener('click', function (event) {
+                if (!document.body.classList.contains('sidebar-collapsed')) {
+                    return;
+                }
+
+                event.preventDefault();
+                applyState(false);
+                window.localStorage.setItem(storageKey, 'false');
+
+                window.setTimeout(function () {
+                    button.click();
+                }, 0);
+            });
+        });
+    });
+    </script>
+    {% endif %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const enhancedSelects = new WeakMap();
+
+        function createChevron() {
+            return `
+                <svg class="modern-select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m6 9 6 6 6-6"></path>
+                </svg>
+            `;
+        }
+
+        function createCheck() {
+            return `
+                <svg class="modern-select-option-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20 6 9 17l-5-5"></path>
+                </svg>
+            `;
+        }
+
+        function closeAllSelects(exceptWrapper) {
+            document.querySelectorAll('.modern-select.is-open').forEach(function (wrapper) {
+                if (wrapper !== exceptWrapper) {
+                    wrapper.classList.remove('is-open');
+                }
+            });
+        }
+
+        function syncModernSelect(select) {
+            const state = enhancedSelects.get(select);
+            if (!state) {
+                return;
+            }
+
+            const placeholderOption = Array.from(select.options).find(function (option) {
+                return option.value === '';
+            });
+            const selectedOption = select.options[select.selectedIndex];
+            const label = selectedOption && selectedOption.text ? selectedOption.text : (placeholderOption ? placeholderOption.text : 'Selecione');
+
+            state.value.textContent = label;
+            state.value.classList.toggle('modern-select-placeholder', !select.value);
+            state.menu.innerHTML = '';
+
+            Array.from(select.options).forEach(function (option, index) {
+                const optionButton = document.createElement('button');
+                optionButton.type = 'button';
+                optionButton.className = 'modern-select-option';
+                optionButton.dataset.value = option.value;
+                optionButton.dataset.index = String(index);
+                optionButton.innerHTML = `<span>${option.text}</span>${createCheck()}`;
+
+                if (option.disabled) {
+                    optionButton.disabled = true;
+                }
+                if (select.selectedIndex === index) {
+                    optionButton.classList.add('is-selected');
+                }
+
+                optionButton.addEventListener('click', function () {
+                    select.selectedIndex = index;
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                    select.dispatchEvent(new Event('input', { bubbles: true }));
+                    state.wrapper.classList.remove('is-open');
+                    syncModernSelect(select);
+                });
+
+                state.menu.appendChild(optionButton);
+            });
+        }
+
+        function enhanceSelect(select) {
+            if (select.multiple || select.dataset.modernized === 'true') {
+                return;
+            }
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'modern-select';
+
+            const trigger = document.createElement('button');
+            trigger.type = 'button';
+            trigger.className = 'modern-select-trigger';
+            trigger.setAttribute('aria-haspopup', 'listbox');
+            trigger.innerHTML = `<span class="modern-select-value"></span>${createChevron()}`;
+
+            const value = trigger.querySelector('.modern-select-value');
+            const menu = document.createElement('div');
+            menu.className = 'modern-select-menu';
+            menu.setAttribute('role', 'listbox');
+
+            select.classList.add('modern-select-native');
+            select.dataset.modernized = 'true';
+            select.parentNode.insertBefore(wrapper, select);
+            wrapper.appendChild(select);
+            wrapper.appendChild(trigger);
+            wrapper.appendChild(menu);
+
+            enhancedSelects.set(select, { wrapper, trigger, value, menu });
+            syncModernSelect(select);
+
+            trigger.addEventListener('click', function () {
+                const isOpen = wrapper.classList.contains('is-open');
+                closeAllSelects(wrapper);
+                wrapper.classList.toggle('is-open', !isOpen);
+            });
+
+            select.addEventListener('change', function () {
+                syncModernSelect(select);
+            });
+
+            const observer = new MutationObserver(function () {
+                syncModernSelect(select);
+            });
+            observer.observe(select, { childList: true, subtree: true, attributes: true, attributeFilter: ['selected', 'disabled', 'label', 'value'] });
+        }
+
+        document.querySelectorAll('select.form-select').forEach(enhanceSelect);
+
+        document.addEventListener('click', function (event) {
+            if (!event.target.closest('.modern-select')) {
+                closeAllSelects();
+            }
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closeAllSelects();
+            }
+        });
+    });
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

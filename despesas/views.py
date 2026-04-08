@@ -7,7 +7,6 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, DeleteView, ListView, TemplateView, UpdateView
 
-from cadastros.models import SubcategoriaDeSpesa
 from usuarios.permissions import ModuleAccessMixin, module_required
 
 from .filters import DespesaFilter
@@ -17,8 +16,10 @@ from .services import (
     create_or_update_recurrence,
     expense_chart_by_category,
     expense_chart_by_subcategory,
+    expense_period_choices,
     expense_summary_by_category,
     generate_recurring_expenses_until,
+    grouped_subcategory_options,
     top_subcategories,
 )
 
@@ -38,15 +39,9 @@ class DespesaListView(ModuleAccessMixin, LoginRequiredMixin, ListView):
     }
 
     def get_default_period(self):
-        latest = (
-            Despesa.objects.values_list("ano_referencia", "mes_referencia")
-            .distinct()
-            .order_by("-ano_referencia", "-mes_referencia")
-            .first()
-        )
+        latest = expense_period_choices()[:1]
         if latest:
-            ano, mes = latest
-            return f"{ano:04d}-{mes:02d}"
+            return latest[0][0]
         today = timezone.localdate()
         return f"{today.year:04d}-{today.month:02d}"
 
@@ -56,7 +51,10 @@ class DespesaListView(ModuleAccessMixin, LoginRequiredMixin, ListView):
             data["periodo"] = self.get_default_period()
         ano_str, mes_str = data["periodo"].split("-")
         generate_recurring_expenses_until(int(ano_str), int(mes_str))
-        return DespesaFilter(data, queryset=Despesa.objects.select_related("categoria", "subcategoria"))
+        return DespesaFilter(
+            data,
+            queryset=Despesa.objects.select_related("categoria", "subcategoria", "recorrencia"),
+        )
 
     def get_queryset(self):
         self.filterset = self.get_filterset()
@@ -107,15 +105,7 @@ class DespesaListView(ModuleAccessMixin, LoginRequiredMixin, ListView):
         context["ordering_base_query"] = ordering_params.urlencode()
         context["pagination_base_query"] = pagination_params.urlencode()
         context["current_ordering"] = getattr(self, "current_ordering", "-id")
-        context["subcategory_options"] = {
-            str(categoria_id): [
-                {"id": str(item["id"]), "nome": item["nome"]}
-                for item in SubcategoriaDeSpesa.objects.filter(categoria_id=categoria_id)
-                .values("id", "nome")
-                .order_by("nome")
-            ]
-            for categoria_id in SubcategoriaDeSpesa.objects.values_list("categoria_id", flat=True).distinct()
-        }
+        context["subcategory_options"] = grouped_subcategory_options()
         return context
 
 
@@ -128,15 +118,7 @@ class DespesaCreateView(ModuleAccessMixin, LoginRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["subcategory_options"] = {
-            str(categoria_id): [
-                {"id": str(item["id"]), "nome": item["nome"]}
-                for item in SubcategoriaDeSpesa.objects.filter(categoria_id=categoria_id)
-                .values("id", "nome")
-                .order_by("nome")
-            ]
-            for categoria_id in SubcategoriaDeSpesa.objects.values_list("categoria_id", flat=True).distinct()
-        }
+        context["subcategory_options"] = grouped_subcategory_options()
         return context
 
     def form_valid(self, form):
@@ -144,7 +126,7 @@ class DespesaCreateView(ModuleAccessMixin, LoginRequiredMixin, CreateView):
         recorrencia = create_or_update_recurrence(
             self.object,
             recorrente=form.cleaned_data["recorrente"],
-            recorrencia_ativa=form.cleaned_data["recorrencia_ativa"],
+            recorrencia_ativa=form.cleaned_data.get("recorrencia_ativa", True),
             recorrencia_data_fim=form.cleaned_data["recorrencia_data_fim"],
         )
         if recorrencia:
@@ -169,15 +151,7 @@ class DespesaUpdateView(ModuleAccessMixin, LoginRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["subcategory_options"] = {
-            str(categoria_id): [
-                {"id": str(item["id"]), "nome": item["nome"]}
-                for item in SubcategoriaDeSpesa.objects.filter(categoria_id=categoria_id)
-                .values("id", "nome")
-                .order_by("nome")
-            ]
-            for categoria_id in SubcategoriaDeSpesa.objects.values_list("categoria_id", flat=True).distinct()
-        }
+        context["subcategory_options"] = grouped_subcategory_options()
         context["recurrence_info"] = self.object.recorrencia
         return context
 
@@ -186,7 +160,7 @@ class DespesaUpdateView(ModuleAccessMixin, LoginRequiredMixin, UpdateView):
         recorrencia = create_or_update_recurrence(
             self.object,
             recorrente=form.cleaned_data["recorrente"],
-            recorrencia_ativa=form.cleaned_data["recorrencia_ativa"],
+            recorrencia_ativa=form.cleaned_data.get("recorrencia_ativa", True),
             recorrencia_data_fim=form.cleaned_data["recorrencia_data_fim"],
         )
         if recorrencia and recorrencia.ativa:

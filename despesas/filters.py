@@ -4,27 +4,12 @@ import django_filters
 from cadastros.models import SubcategoriaDeSpesa
 
 from .models import Despesa
-
-
-MONTH_LABELS = {
-    1: "Janeiro",
-    2: "Fevereiro",
-    3: "Março",
-    4: "Abril",
-    5: "Maio",
-    6: "Junho",
-    7: "Julho",
-    8: "Agosto",
-    9: "Setembro",
-    10: "Outubro",
-    11: "Novembro",
-    12: "Dezembro",
-}
+from .services import expense_period_choices
 
 
 class DespesaFilter(django_filters.FilterSet):
     periodo = django_filters.ChoiceFilter(
-        label="Período",
+        label="Periodo",
         method="filter_periodo",
         choices=(),
         empty_label=None,
@@ -46,14 +31,7 @@ class DespesaFilter(django_filters.FilterSet):
     def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
         super().__init__(data=data, queryset=queryset, request=request, prefix=prefix)
 
-        periodos = [
-            (f"{ano:04d}-{mes:02d}", f"{MONTH_LABELS.get(mes, mes)}/{ano}")
-            for ano, mes in (
-                Despesa.objects.values_list("ano_referencia", "mes_referencia")
-                .distinct()
-                .order_by("-ano_referencia", "-mes_referencia")
-            )
-        ]
+        periodos = expense_period_choices()
         self.filters["periodo"].field.choices = periodos
         self.form.fields["periodo"].choices = periodos
 
@@ -65,11 +43,13 @@ class DespesaFilter(django_filters.FilterSet):
 
         categoria_id = self.data.get("categoria") or self.form.initial.get("categoria")
         if categoria_id:
-            self.filters["subcategoria"].field.queryset = SubcategoriaDeSpesa.objects.filter(categoria_id=categoria_id)
-            self.form.fields["subcategoria"].queryset = SubcategoriaDeSpesa.objects.filter(categoria_id=categoria_id)
+            subcategorias = SubcategoriaDeSpesa.objects.filter(categoria_id=categoria_id).order_by("nome")
+            self.filters["subcategoria"].field.queryset = subcategorias
+            self.form.fields["subcategoria"].queryset = subcategorias
         else:
-            self.filters["subcategoria"].field.queryset = SubcategoriaDeSpesa.objects.all()
-            self.form.fields["subcategoria"].queryset = SubcategoriaDeSpesa.objects.all()
+            empty_queryset = SubcategoriaDeSpesa.objects.none()
+            self.filters["subcategoria"].field.queryset = empty_queryset
+            self.form.fields["subcategoria"].queryset = empty_queryset
 
     def filter_periodo(self, queryset, name, value):
         try:

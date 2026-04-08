@@ -1,22 +1,23 @@
 {% extends "base.html" %}
 
-{% block page_title %}Confirmar exclusão{% endblock %}
+{% block page_title %}Confirmar exclusao{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Revise o impacto da remocao antes de concluir a acao.</p>{% endblock %}
 
 {% block content %}
-<div class="card shadow-sm border-0">
+<div class="card border-0">
     <div class="card-body">
         <p class="mb-3">Tem certeza que deseja excluir <strong>{{ object }}</strong>?</p>
         {% if recurrence_info %}
             <div class="alert alert-warning">
-                Esta despesa faz parte de uma recorrência.
+                Esta despesa faz parte de uma recorrencia.
                 {% if recurrence_info.ativa %}
-                    Ao excluir este lançamento, a recorrência será encerrada para evitar que ele seja recriado automaticamente.
+                    Ao excluir este lancamento, a recorrencia sera encerrada para evitar que ele seja recriado automaticamente.
                 {% else %}
-                    A recorrência já está encerrada.
+                    A recorrencia ja esta encerrada.
                 {% endif %}
             </div>
         {% endif %}
-        <form method="post">
+        <form method="post" class="d-flex gap-2 flex-wrap">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger">Excluir</button>
             <a href="javascript:history.back()" class="btn btn-outline-secondary">Cancelar</a>

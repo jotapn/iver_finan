@@ -148,4 +148,54 @@ class FolhaServiceTests(TestCase):
         )
         self.assertEqual(despesa.valor, Decimal("800.00"))
 
+    def test_sync_period_is_idempotent_for_launches_and_benefits(self):
+        setor = Setor.objects.create(nome="SERVICO")
+        cargo = Cargo.objects.create(nome="Atendente", setor=setor, comissao_percentual=Decimal("0.0000"))
+        Colaborador.objects.create(
+            nome="Leo",
+            cargo=cargo,
+            salario_bruto=Decimal("1500.00"),
+            data_admissao=date(2025, 1, 1),
+        )
+        periodo = PeriodoFolha.objects.create(mes=6, ano=2025)
+
+        sync_periodo(periodo)
+        sync_periodo(periodo)
+
+        self.assertEqual(periodo.lancamentos.count(), 1)
+        self.assertEqual(periodo.beneficios.count(), 1)
+
+    def test_sync_period_payment_expenses_consolidates_with_single_latest_date(self):
+        setor = Setor.objects.create(nome="OPERACOES")
+        cargo = Cargo.objects.create(nome="Auxiliar", setor=setor, comissao_percentual=Decimal("0.0000"))
+        colaborador = Colaborador.objects.create(
+            nome="Nina",
+            cargo=cargo,
+            salario_bruto=Decimal("1000.00"),
+            data_admissao=date(2025, 1, 1),
+        )
+        periodo = PeriodoFolha.objects.create(mes=7, ano=2025)
+        sync_periodo(periodo)
+
+        beneficio = periodo.beneficios.get(colaborador=colaborador)
+        beneficio.ajuda_custo = Decimal("200.00")
+        beneficio.vale_transporte = Decimal("100.00")
+        beneficio.pago = True
+        beneficio.data_pagamento = date(2025, 7, 22)
+        beneficio.save(update_fields=["ajuda_custo", "vale_transporte", "pago", "data_pagamento"])
+
+        sync_periodo_payment_expenses(periodo)
+
+        ajuda = Despesa.objects.get(origem=Despesa.Origem.FOLHA, folha_tipo="AJUDA_CUSTO", ano_referencia=2025, mes_referencia=7)
+        transporte = Despesa.objects.get(
+            origem=Despesa.Origem.FOLHA,
+            folha_tipo="VALE_TRANSPORTE",
+            ano_referencia=2025,
+            mes_referencia=7,
+        )
+        self.assertEqual(ajuda.valor, Decimal("200.00"))
+        self.assertEqual(transporte.valor, Decimal("100.00"))
+        self.assertEqual(ajuda.data_pagamento, date(2025, 7, 22))
+        self.assertEqual(transporte.data_pagamento, date(2025, 7, 22))
+
 # Create your tests here.

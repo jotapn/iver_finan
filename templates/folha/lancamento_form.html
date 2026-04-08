@@ -1,15 +1,35 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
 
-{% block page_title %}Editar Lançamento{% endblock %}
+{% block page_title %}Editar Lancamento{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Ajuste descontos, datas e produtividades com melhor aproveitamento do espaco.</p>{% endblock %}
 
 {% block content %}
-<div class="card shadow-sm border-0">
+<div class="card border-0">
     <div class="card-body">
         <form method="post">
             {% csrf_token %}
-            {{ form|crispy }}
-            <button class="btn btn-primary">Salvar</button>
+            <div class="form-shell">
+                <section class="form-panel">
+                    <div class="form-panel-header">
+                        <span class="eyebrow">Ajustes</span>
+                        <h3 class="form-panel-title">Valores e vencimentos</h3>
+                    </div>
+                    <div class="row form-grid-tight">
+                        <div class="col-md-3">{{ form.consumo_colaborador|as_crispy_field }}</div>
+                        <div class="col-md-3">{{ form.descontos|as_crispy_field }}</div>
+                        <div class="col-md-3">{{ form.produtividade_1_valor|as_crispy_field }}</div>
+                        <div class="col-md-3">{{ form.produtividade_2_valor|as_crispy_field }}</div>
+                        <div class="col-md-3">{{ form.adiantamento_data|as_crispy_field }}</div>
+                        <div class="col-md-3">{{ form.saldo_final_data|as_crispy_field }}</div>
+                        <div class="col-md-3">{{ form.produtividade_1_data|as_crispy_field }}</div>
+                        <div class="col-md-3">{{ form.produtividade_2_data|as_crispy_field }}</div>
+                    </div>
+                </section>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-primary">Salvar</button>
+            </div>
         </form>
     </div>
 </div>

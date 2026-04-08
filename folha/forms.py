@@ -45,6 +45,10 @@ class LancamentoColaboradorForm(forms.ModelForm):
             field.widget.attrs["class"] = f"{existing} {css_class}".strip()
         for field_name in ["consumo_colaborador", "descontos", "produtividade_1_valor", "produtividade_2_valor"]:
             self.fields[field_name].widget.attrs.setdefault("step", "0.01")
+        self.fields["consumo_colaborador"].widget.attrs.update({"placeholder": "0,00"})
+        self.fields["descontos"].widget.attrs.update({"placeholder": "0,00"})
+        self.fields["produtividade_1_valor"].widget.attrs.update({"placeholder": "0,00"})
+        self.fields["produtividade_2_valor"].widget.attrs.update({"placeholder": "0,00"})
 
     class Meta:
         model = LancamentoColaborador
@@ -67,6 +71,12 @@ class LancamentoColaboradorForm(forms.ModelForm):
 
 
 class BeneficioColaboradorForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["vale_transporte"].widget.attrs.update({"placeholder": "0,00"})
+        self.fields["ajuda_custo"].widget.attrs.update({"placeholder": "0,00"})
+        self.fields["pago"].widget.attrs.update({"class": "form-check-input"})
+
     class Meta:
         model = BeneficioColaborador
         fields = ["colaborador", "vale_transporte", "ajuda_custo", "data_vencimento", "data_pagamento", "pago"]

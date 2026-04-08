@@ -35,18 +35,31 @@ def format_cpf(value):
 
 
 class BancoForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["nome"].widget.attrs.update({"placeholder": "Ex.: Banco do Brasil, Nubank, Caixa"})
+
     class Meta:
         model = Banco
         fields = ["nome"]
 
 
 class SetorForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["nome"].widget.attrs.update({"placeholder": "Ex.: Cozinha, Atendimento, Administrativo"})
+
     class Meta:
         model = Setor
         fields = ["nome"]
 
 
 class CargoForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["nome"].widget.attrs.update({"placeholder": "Ex.: Garcom, Caixa, Gestor"})
+        self.fields["comissao_percentual"].widget.attrs.update({"placeholder": "0,00"})
+
     class Meta:
         model = Cargo
         fields = ["nome", "setor", "comissao_percentual"]
@@ -99,18 +112,30 @@ class ColaboradorForm(forms.ModelForm):
 
 
 class FormaPagamentoForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["nome"].widget.attrs.update({"placeholder": "Ex.: PIX, Cartao, Vale"})
+
     class Meta:
         model = FormaPagamento
         fields = ["nome"]
 
 
 class CategoriaDeSpesaForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["nome"].widget.attrs.update({"placeholder": "Ex.: Estrutura, Pessoal, Operacao"})
+
     class Meta:
         model = CategoriaDeSpesa
         fields = ["nome"]
 
 
 class SubcategoriaDeSpesaForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["nome"].widget.attrs.update({"placeholder": "Ex.: Aluguel, Energia, Internet"})
+
     class Meta:
         model = SubcategoriaDeSpesa
         fields = ["nome", "categoria"]

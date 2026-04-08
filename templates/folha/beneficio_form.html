@@ -1,15 +1,46 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
 
-{% block page_title %}Benefício do Colaborador{% endblock %}
+{% block page_title %}Beneficio do Colaborador{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Configure valores, vencimento e status do beneficio com leitura mais direta.</p>{% endblock %}
 
 {% block content %}
-<div class="card shadow-sm border-0">
+<div class="card border-0">
     <div class="card-body">
         <form method="post">
             {% csrf_token %}
-            {{ form|crispy }}
-            <button class="btn btn-primary">Salvar</button>
+            <div class="form-shell">
+                <section class="form-panel">
+                    <div class="form-panel-header">
+                        <span class="eyebrow">Beneficios</span>
+                        <h3 class="form-panel-title">Dados do colaborador</h3>
+                    </div>
+                    <div class="row form-grid-tight">
+                        <div class="col-md-4">{{ form.colaborador|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.vale_transporte|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.ajuda_custo|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.data_vencimento|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.data_pagamento|as_crispy_field }}</div>
+                        <div class="col-md-4">
+                            <div class="toggle-field">
+                                <label class="form-label" for="{{ form.pago.id_for_label }}">Status</label>
+                                <div class="toggle-panel toggle-panel-compact">
+                                    <div class="form-check form-switch m-0">
+                                        {{ form.pago }}
+                                        <label class="form-check-label" for="{{ form.pago.id_for_label }}">Pago</label>
+                                    </div>
+                                </div>
+                                {% for error in form.pago.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-primary">Salvar</button>
+            </div>
         </form>
     </div>
 </div>

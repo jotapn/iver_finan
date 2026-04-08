@@ -2,26 +2,115 @@
 {% load crispy_forms_tags %}
 
 {% block page_title %}Despesa{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Cadastre ou ajuste despesas com melhor distribuicao visual entre dados base e automacao.</p>{% endblock %}
 
 {% block content %}
-<div class="card shadow-sm border-0">
+<div class="form-masthead">
+    <div class="form-masthead-main">
+        <span class="eyebrow">Despesa</span>
+        <h3 class="form-masthead-title">Registre custos com contexto e automacao</h3>
+        <p class="metric-copy mb-0">Use a mesma logica do design system: leitura rapida, agrupamento por assunto e menos ruido visual no preenchimento.</p>
+    </div>
+    <div class="form-masthead-side">
+        <div class="form-feature-grid">
+            <div class="form-feature-card">
+                <span class="eyebrow">Fluxo</span>
+                <strong>Base + recorrencia</strong>
+            </div>
+            <div class="form-feature-card">
+                <span class="eyebrow">Status</span>
+                <strong>Pagamento e vencimento</strong>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card border-0">
     <div class="card-body">
         {% if recurrence_info %}
             <div class="alert alert-info recurring-alert">
-                <strong>Recorrência:</strong>
+                <strong>Recorrencia:</strong>
                 {% if recurrence_info.ativa %}ativa{% else %}encerrada{% endif %}.
-                Início em {{ recurrence_info.data_inicio|date:"m/Y" }}.
+                Inicio em {{ recurrence_info.data_inicio|date:"m/Y" }}.
                 {% if recurrence_info.data_fim %}
-                    Término em {{ recurrence_info.data_fim|date:"m/Y" }}.
+                    Termino em {{ recurrence_info.data_fim|date:"m/Y" }}.
                 {% else %}
-                    Sem data de término.
+                    Sem data de termino.
                 {% endif %}
             </div>
         {% endif %}
         <form method="post">
             {% csrf_token %}
-            {{ form|crispy }}
-            <div class="d-flex gap-2">
+            {% if form.non_field_errors %}
+                <div class="alert alert-warning">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <div class="form-shell">
+                <section class="form-panel">
+                    <div class="form-panel-header">
+                        <span class="eyebrow">Base</span>
+                        <h3 class="form-panel-title">Informacoes da despesa</h3>
+                    </div>
+                    <div class="row form-grid-tight">
+                        <div class="col-12">{{ form.descricao|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.categoria|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.subcategoria|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.valor|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.forma_pagamento|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.banco|as_crispy_field }}</div>
+                        <div class="col-md-4">
+                            <div class="toggle-field">
+                                <label class="form-label" for="{{ form.pago.id_for_label }}">Status</label>
+                                <div class="toggle-panel toggle-panel-compact">
+                                    <div class="form-check form-switch m-0">
+                                        {{ form.pago }}
+                                        <label class="form-check-label" for="{{ form.pago.id_for_label }}">Pago</label>
+                                    </div>
+                                </div>
+                                {% for error in form.pago.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">{{ form.data_vencimento|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.data_pagamento|as_crispy_field }}</div>
+                        <div class="col-md-2">{{ form.mes_referencia|as_crispy_field }}</div>
+                        <div class="col-md-2">{{ form.ano_referencia|as_crispy_field }}</div>
+                        <div class="col-12">{{ form.observacao|as_crispy_field }}</div>
+                    </div>
+                </section>
+
+                <section class="form-panel">
+                    <div class="form-panel-header">
+                        <span class="eyebrow">Recorrencia</span>
+                        <h3 class="form-panel-title">Automacao da despesa</h3>
+                    </div>
+                    <div class="surface-note mb-3">
+                        <span class="eyebrow">Assistido</span>
+                        <div class="mt-1">Defina se a despesa encerra por data final ou por quantidade de repeticoes.</div>
+                    </div>
+                    <div class="row form-grid-tight">
+                        <div class="col-12">
+                            <div class="check-panel">{{ form.recorrente|as_crispy_field }}</div>
+                        </div>
+                        {% if form.recorrencia_tipo_fim %}
+                            <div class="col-md-4">{{ form.recorrencia_tipo_fim|as_crispy_field }}</div>
+                        {% endif %}
+                        {% if form.recorrencia_data_fim %}
+                            <div class="col-md-4">{{ form.recorrencia_data_fim|as_crispy_field }}</div>
+                        {% endif %}
+                        {% if form.recorrencia_quantidade %}
+                            <div class="col-md-4">{{ form.recorrencia_quantidade|as_crispy_field }}</div>
+                        {% endif %}
+                        {% if form.recorrencia_ativa %}
+                            <div class="col-12">
+                                <div class="check-panel">{{ form.recorrencia_ativa|as_crispy_field }}</div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </section>
+            </div>
+
+            <div class="form-actions">
                 <button class="btn btn-primary" type="submit">Salvar</button>
                 {% if object %}
                     <a class="btn btn-outline-danger" href="{% url 'despesas:delete' object.pk %}">Excluir</a>
@@ -38,7 +127,45 @@
 <script>
 const categoryField = document.getElementById('id_categoria');
 const subcategoryField = document.getElementById('id_subcategoria');
+const recurringField = document.getElementById('id_recorrente');
+const recurrenceTypeField = document.getElementById('id_recorrencia_tipo_fim');
+const recurrenceEndField = document.getElementById('id_recorrencia_data_fim');
+const recurrenceCountField = document.getElementById('id_recorrencia_quantidade');
+const recurrenceActiveField = document.getElementById('id_recorrencia_ativa');
 const subcategoryOptions = JSON.parse(document.getElementById('subcategory-options-form').textContent);
+
+function resolveFieldGroup(field) {
+    if (!field) {
+        return null;
+    }
+
+    return field.closest('.mb-3') || field.closest('.form-group') || field.parentElement;
+}
+
+function toggleRecurringFields() {
+    const showRecurringConfig = recurringField && recurringField.checked;
+    const recurrenceType = recurrenceTypeField ? recurrenceTypeField.value : '';
+    const typeGroup = resolveFieldGroup(recurrenceTypeField);
+    const endGroup = resolveFieldGroup(recurrenceEndField);
+    const countGroup = resolveFieldGroup(recurrenceCountField);
+    const activeGroup = resolveFieldGroup(recurrenceActiveField);
+
+    if (typeGroup) {
+        typeGroup.style.display = showRecurringConfig ? '' : 'none';
+    }
+
+    if (endGroup) {
+        endGroup.style.display = showRecurringConfig && recurrenceType === 'data' ? '' : 'none';
+    }
+
+    if (countGroup) {
+        countGroup.style.display = showRecurringConfig && recurrenceType === 'quantidade' ? '' : 'none';
+    }
+
+    if (activeGroup) {
+        activeGroup.style.display = showRecurringConfig ? '' : 'none';
+    }
+}
 
 function refreshSubcategoryOptions() {
     if (!categoryField || !subcategoryField) {
@@ -77,6 +204,15 @@ if (categoryField && subcategoryField) {
         subcategoryField.value = '';
         refreshSubcategoryOptions();
     });
+}
+
+if (recurringField) {
+    toggleRecurringFields();
+    recurringField.addEventListener('change', toggleRecurringFields);
+}
+
+if (recurrenceTypeField) {
+    recurrenceTypeField.addEventListener('change', toggleRecurringFields);
 }
 </script>
 {% endblock %}
